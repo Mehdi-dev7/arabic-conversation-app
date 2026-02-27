@@ -2,12 +2,15 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MessageBubble } from './MessageBubble';
+import { CorrectionPopup } from './CorrectionPopup';
 import { Level, Language } from '@/lib/constants';
+import { Correction, parseCorrectionFromResponse } from '@/lib/prompts';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  correction?: Correction;
 }
 
 interface ChatInterfaceProps {
@@ -41,6 +44,14 @@ export function ChatInterface({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    setMessages([{
+      role: 'assistant',
+      content: initialMessage,
+      timestamp: new Date(),
+    }]);
+  }, [initialMessage, language]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,10 +92,13 @@ export function ChatInterface({
 
       const data = await response.json();
       
+      const correction = parseCorrectionFromResponse(data.response);
+      
       const assistantMessage: Message = {
         role: 'assistant',
         content: data.response,
         timestamp: new Date(data.timestamp),
+        correction: correction || undefined,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -105,12 +119,16 @@ export function ChatInterface({
     <div className="flex flex-col h-full bg-gradient-to-br from-primary-night to-neutral-warm-gray/30">
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {messages.map((message, index) => (
-          <MessageBubble
-            key={index}
-            content={message.content}
-            role={message.role}
-            timestamp={message.timestamp}
-          />
+          <div key={index}>
+            {message.correction && (
+              <CorrectionPopup correction={message.correction} />
+            )}
+            <MessageBubble
+              content={message.content}
+              role={message.role}
+              timestamp={message.timestamp}
+            />
+          </div>
         ))}
         {isLoading && (
           <div className="flex justify-start">
