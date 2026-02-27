@@ -1,0 +1,1021 @@
+# Arabic Conversation AI App - Cursor Rules
+
+## 🎯 PROJECT OVERVIEW
+
+**Name:** Arabic Conversation Practice (working title)
+**Type:** Next.js PWA (Progressive Web App)
+**Purpose:** AI-powered conversational Arabic learning platform with immersive scenarios
+**Target Users:** French/English speakers learning Modern Standard Arabic (MSA) or Moroccan Darija
+**Unique Selling Points:**
+- Halal-compliant gestural avatar (NO face/eyes)
+- Real-time corrections during conversation
+- Adaptive difficulty based on user progress
+- Immersive scenarios with evolving backgrounds
+- Bilingual: MSA + Moroccan Darija
+
+---
+
+## 🛠️ TECH STACK
+
+### Frontend
+- **Framework:** Next.js 15 (App Router)
+- **Language:** TypeScript (strict mode)
+- **Styling:** Tailwind CSS
+- **UI Components:** Shadcn/ui
+- **Animations:** Framer Motion (avatar gestures)
+- **Audio:** Howler.js (ambient sounds)
+- **Icons:** Lucide React
+
+### Backend
+- **API Routes:** Next.js API Routes
+- **AI Conversation:** Claude API (Anthropic) - claude-sonnet-4-20250514
+- **Speech-to-Text:** Whisper API (OpenAI) - PREMIUM ONLY
+- **Text-to-Speech:** Google Cloud TTS (Arabic voices) - PREMIUM ONLY
+- **Database:** Supabase (PostgreSQL)
+- **Auth:** Supabase Auth (Google/Apple Sign-In only)
+- **Payments:** Stripe (subscriptions)
+
+### PWA Configuration
+- **Package:** next-pwa
+- **Service Worker:** Cache conversations for offline mode (premium only)
+- **Manifest:** App installable on mobile/desktop
+
+---
+
+## 📊 DATABASE SCHEMA (Supabase)
+
+```sql
+-- Users table
+users (
+  id UUID PRIMARY KEY,
+  email TEXT UNIQUE,
+  name TEXT,
+  plan TEXT DEFAULT 'free', -- 'free', 'premium', 'student'
+  current_level TEXT DEFAULT 'beginner', -- 'beginner', 'intermediate', 'advanced'
+  preferred_language TEXT DEFAULT 'msa', -- 'msa' (Modern Standard Arabic) or 'darija' (Moroccan)
+  streak_days INTEGER DEFAULT 0,
+  created_at TIMESTAMP,
+  stripe_customer_id TEXT,
+  subscription_status TEXT
+)
+
+-- Conversations table
+conversations (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  scenario_id TEXT, -- e.g., 'cafe', 'airport', 'restaurant'
+  language TEXT, -- 'msa' or 'darija'
+  level TEXT, -- 'beginner', 'intermediate', 'advanced'
+  messages JSONB[], -- [{role: 'user'|'assistant', content: TEXT, timestamp: TIMESTAMP}]
+  duration_seconds INTEGER,
+  created_at TIMESTAMP
+)
+
+-- Vocabulary table
+vocabulary (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  word TEXT, -- Arabic word
+  translation TEXT, -- French/English translation
+  context TEXT, -- Sentence where learned
+  scenario_id TEXT,
+  mastery_level INTEGER DEFAULT 0, -- 0-5 (spaced repetition)
+  learned_at TIMESTAMP,
+  last_reviewed TIMESTAMP
+)
+
+-- Progress tracking
+progress (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  scenarios_completed TEXT[], -- Array of completed scenario IDs
+  total_conversations INTEGER DEFAULT 0,
+  total_hours FLOAT DEFAULT 0,
+  words_learned INTEGER DEFAULT 0,
+  common_errors JSONB, -- {error_type: count}
+  updated_at TIMESTAMP
+)
+
+-- Corrections log
+corrections (
+  id UUID PRIMARY KEY,
+  conversation_id UUID REFERENCES conversations(id),
+  user_input TEXT, -- Incorrect sentence
+  correction TEXT, -- Correct version
+  explanation TEXT, -- Grammar explanation
+  error_type TEXT, -- 'conjugation', 'vocabulary', 'syntax', etc.
+  created_at TIMESTAMP
+)
+
+-- Rate limiting (free plan)
+rate_limits (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  conversations_this_month INTEGER DEFAULT 0,
+  last_reset TIMESTAMP
+)
+```
+
+---
+
+## 🎨 DESIGN REQUIREMENTS
+
+### Avatar Design (Halal-Compliant)
+**CRITICAL:** NO face, NO eyes, NO realistic human representation
+
+**Chosen Concept:** Abstract humanoid silhouette
+```
+- Head: Glowing sphere (no facial features)
+- Body: Connected geometric shapes (minimalist)
+- Hands: Visible for cultural gestures
+- Animations:
+  * Hand on heart (respect/gratitude)
+  * Beckoning gesture (encouragement)
+  * Pointing (corrections)
+  * Slight sway when speaking
+  * Pulse/glow when listening
+- Style: Elegant, minimalist, culturally respectful
+- Color: Adapts to scenario (golden in mosque, blue in cafe, etc.)
+```
+
+**Technical Implementation:**
+- Framer Motion for smooth animations
+- SVG-based shapes (scalable, lightweight)
+- CSS animations for glow effects
+- Lottie files for complex gestures (pre-made, loop)
+
+### Evolving Backgrounds
+Each scenario has unique background + ambient sound:
+
+```javascript
+scenarios = {
+  cafe: {
+    background: 'Moroccan cafe interior (tables, zellige tiles)',
+    ambient: 'Light chatter, coffee machine sounds',
+    avatar_color: '#8B4513' (coffee brown)
+  },
+  airport: {
+    background: 'Modern terminal (departure boards)',
+    ambient: 'Distant announcements, rolling luggage',
+    avatar_color: '#4A90E2' (sky blue)
+  },
+  souk: {
+    background: 'Colorful market stalls (fabrics, spices)',
+    ambient: 'Vendor calls, bargaining voices',
+    avatar_color: '#D4AF37' (golden)
+  },
+  restaurant: {
+    background: 'Moroccan restaurant (lanterns, cushions)',
+    ambient: 'Cutlery, low conversations',
+    avatar_color: '#C46845' (terracotta)
+  },
+  home: {
+    background: 'Moroccan living room (salon, tea set)',
+    ambient: 'Calm, birds chirping',
+    avatar_color: '#556B2F' (olive green)
+  }
+}
+```
+
+### Typography
+```css
+/* Arabic text */
+--font-arabic-display: 'Cairo', sans-serif;
+--font-arabic-body: 'Tajawal', sans-serif;
+
+/* Latin text (French/English UI) */
+--font-latin: 'Figtree', sans-serif;
+
+/* Avoid: Inter, Roboto, Arial (generic) */
+```
+
+### Color Palette
+```css
+:root {
+  --primary-night: #1a2332; /* Deep blue-black */
+  --primary-gold: #d4af37; /* Arabic gold */
+  --secondary-terracotta: #c46845;
+  --secondary-olive: #556b2f;
+  --neutral-sand: #f5f5dc; /* Off-white */
+  --neutral-warm-gray: #8b8378;
+  
+  /* Correction colors */
+  --error-red: #e74c3c; /* Soft red */
+  --success-green: #27ae60; /* Encouraging green */
+  --warning-orange: #f39c12; /* Mild correction */
+}
+```
+
+---
+
+## 🎓 LEARNING FEATURES
+
+### Difficulty Levels
+```typescript
+type Level = 'beginner' | 'intermediate' | 'advanced';
+
+const levelConfigs = {
+  beginner: {
+    systemPrompt: `You are a patient Arabic tutor. Use simple sentences (5-8 words max). 
+                   Provide immediate, gentle corrections. Repeat user's message correctly.
+                   Translate complex words. Vocabulary < 500 words.`,
+    maxTokensPerMessage: 500,
+    correctionFrequency: 'immediate', // Every error
+    translationHelp: true,
+  },
+  
+  intermediate: {
+    systemPrompt: `You are an encouraging Arabic tutor. Use natural conversational phrases.
+                   Introduce common idioms. Correct errors with brief explanations.
+                   Vocabulary 500-2000 words.`,
+    maxTokensPerMessage: 1000,
+    correctionFrequency: 'moderate', // Major errors only
+    translationHelp: false,
+  },
+  
+  advanced: {
+    systemPrompt: `You are a sophisticated Arabic conversation partner. Use complex structures,
+                   idioms, and multiple registers. Debate topics. Subtle corrections.
+                   Vocabulary > 2000 words.`,
+    maxTokensPerMessage: 2000,
+    correctionFrequency: 'minimal', // End of conversation summary
+    translationHelp: false,
+  }
+};
+```
+
+### Language Modes
+```typescript
+type Language = 'msa' | 'darija';
+
+const languageConfigs = {
+  msa: {
+    name: 'العربية الفصحى (Modern Standard Arabic)',
+    description: 'Formal, media, education, administration',
+    systemPromptAddition: `Speak in Modern Standard Arabic (Fusha). 
+                           Use grammatically correct classical structures.`,
+  },
+  
+  darija: {
+    name: 'الدارجة المغربية (Moroccan Darija)',
+    description: 'Conversational daily Moroccan dialect',
+    systemPromptAddition: `Speak in Moroccan Darija (Moroccan Arabic dialect). 
+                           Use colloquial expressions, local idioms.
+                           Grammar can be flexible as in natural speech.`,
+  }
+};
+```
+
+### Real-Time Correction System
+```typescript
+// Correction during conversation (inline)
+interface Correction {
+  userInput: string;      // "أنا ذهب إلى السوق أمس"
+  corrected: string;      // "أنا ذهبتُ إلى السوق أمس"
+  explanation: string;    // "ذهب = he went, ذهبتُ = I went (أنا)"
+  errorType: 'conjugation' | 'vocabulary' | 'syntax' | 'pronunciation';
+  severity: 'minor' | 'moderate' | 'major';
+}
+
+// AI response with correction
+{
+  message: "تقريباً صحيح! 👋 لكن الصيغة الصحيحة هي...",
+  correction: Correction,
+  continueConversation: true
+}
+```
+
+### Adaptive Progression
+```typescript
+// Automatic level adjustment based on performance
+function evaluatePerformance(user_id: string): Promise<Level> {
+  const last10Conversations = await getRecentConversations(user_id, 10);
+  
+  const metrics = {
+    errorRate: calculateErrorRate(last10Conversations),
+    vocabularyComplexity: analyzeVocabularyUsed(last10Conversations),
+    responseTime: calculateAverageResponseTime(last10Conversations),
+  };
+  
+  if (metrics.errorRate < 10% && metrics.vocabularyComplexity > 70%) {
+    return 'advanced';
+  } else if (metrics.errorRate < 30% && metrics.vocabularyComplexity > 40%) {
+    return 'intermediate';
+  }
+  return 'beginner';
+}
+```
+
+---
+
+## 📚 SCENARIOS (Immersive Situations)
+
+### Beginner Scenarios
+```typescript
+const beginnerScenarios = [
+  {
+    id: 'introduction',
+    name: 'التعارف',
+    nameEn: 'Self Introduction',
+    description: 'Learn to introduce yourself',
+    estimatedDuration: 5, // minutes
+    vocabulary: ['اسم', 'عمر', 'مدينة', 'عمل', 'هواية'],
+    freeAccess: true, // ONLY free scenario
+  },
+  {
+    id: 'cafe',
+    name: 'في المقهى',
+    nameEn: 'At the Cafe',
+    description: 'Order drinks, small talk with barista',
+    estimatedDuration: 8,
+    vocabulary: ['قهوة', 'شاي', 'سكر', 'ساخن', 'بارد'],
+    freeAccess: false,
+  },
+  {
+    id: 'market',
+    name: 'السوق',
+    nameEn: 'At the Market',
+    description: 'Buy fruits, vegetables, bargain',
+    estimatedDuration: 10,
+    vocabulary: ['طماطم', 'تفاح', 'كيلو', 'ثمن', 'رخيص'],
+    freeAccess: false,
+  },
+];
+```
+
+### Intermediate Scenarios
+```typescript
+const intermediateScenarios = [
+  {
+    id: 'restaurant',
+    name: 'المطعم',
+    nameEn: 'Restaurant',
+    description: 'Full dining experience, menu discussion',
+    estimatedDuration: 15,
+  },
+  {
+    id: 'airport',
+    name: 'المطار',
+    nameEn: 'Airport',
+    description: 'Check-in, customs, gate navigation',
+    estimatedDuration: 12,
+  },
+  {
+    id: 'doctor',
+    name: 'الطبيب',
+    nameEn: 'Doctor Visit',
+    description: 'Describe symptoms, understand medical advice',
+    estimatedDuration: 15,
+  },
+];
+```
+
+### Advanced Scenarios
+```typescript
+const advancedScenarios = [
+  {
+    id: 'job_interview',
+    name: 'المقابلة',
+    nameEn: 'Job Interview',
+    description: 'Professional interview, career discussion',
+    estimatedDuration: 20,
+  },
+  {
+    id: 'debate',
+    name: 'النقاش',
+    nameEn: 'Debate',
+    description: 'Discuss politics, society, philosophy',
+    estimatedDuration: 25,
+  },
+];
+```
+
+---
+
+## 💰 MONETIZATION (STRICT FREEMIUM)
+
+### Free Plan (Intentionally Frustrating)
+```typescript
+const freePlanLimits = {
+  conversationsPerMonth: 2, // NOT 3, make it restrictive
+  maxDurationPerConversation: 5, // minutes (hard cutoff)
+  scenariosAccess: ['introduction'], // ONLY 1 scenario
+  languageAccess: 'msa', // MSA only, no Darija
+  voiceMode: false, // Text only
+  correctionsType: 'end_of_conversation', // Not real-time
+  saveHistory: 7, // days, then deleted
+  exportVocabulary: false,
+  offlineMode: false,
+  watermark: 'Plan Gratuit - Limite 2 conversations/mois', // Persistent UI badge
+};
+
+// Rate limiting middleware
+async function checkFreePlanLimits(userId: string): Promise<boolean> {
+  const user = await getUser(userId);
+  if (user.plan !== 'free') return true;
+  
+  const thisMonth = await getConversationCount(userId, 'current_month');
+  
+  if (thisMonth >= 2) {
+    throw new Error('FREE_LIMIT_REACHED');
+  }
+  return true;
+}
+```
+
+### Premium Plan (9.99€/month)
+```typescript
+const premiumFeatures = {
+  conversationsPerMonth: Infinity,
+  maxDurationPerConversation: Infinity,
+  scenariosAccess: 'all',
+  languageAccess: ['msa', 'darija'], // Both
+  voiceMode: true, // Full voice input/output
+  correctionsType: 'real_time', // Immediate
+  saveHistory: Infinity,
+  exportVocabulary: true, // PDF/Anki export
+  offlineMode: true, // PWA cache
+  advancedStats: true,
+  prioritySupport: true,
+  watermark: false,
+};
+```
+
+### Student Plan (4.99€/month)
+```typescript
+const studentPlan = {
+  ...premiumFeatures,
+  requiresVerification: true, // Student ID upload
+};
+```
+
+### Annual Plan (79€/year)
+```typescript
+const annualPlan = {
+  ...premiumFeatures,
+  discount: '20%', // = 6.58€/month effective
+  billingCycle: 'yearly',
+};
+```
+
+---
+
+## 🔒 SECURITY & ANTI-ABUSE
+
+### Rate Limiting
+```typescript
+// Free users: strict limits
+app.use('/api/conversation', rateLimiter({
+  windowMs: 2 * 60 * 60 * 1000, // 2 hours
+  max: 1, // 1 conversation per 2 hours
+  skipSuccessfulRequests: false,
+  keyGenerator: (req) => req.user.id,
+  skip: (req) => req.user.plan === 'premium',
+}));
+
+// Premium users: generous but still protected
+app.use('/api/conversation', rateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // 10 requests/min (protect against spam)
+  keyGenerator: (req) => req.user.id,
+}));
+```
+
+### Account Verification
+```typescript
+// Only Google/Apple Sign-In (no custom emails)
+const authProviders = ['google', 'apple'];
+
+// Block disposable emails
+const blockedEmailDomains = [
+  'guerrillamail.com',
+  'tempmail.com',
+  'throwaway.email',
+  // ... add more
+];
+
+// Limit 1 free account per IP per 24h
+async function checkIPLimit(ip: string): Promise<boolean> {
+  const recentAccounts = await supabase
+    .from('users')
+    .select('*')
+    .eq('signup_ip', ip)
+    .eq('plan', 'free')
+    .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000));
+  
+  return recentAccounts.length === 0;
+}
+```
+
+### Token Usage Optimization
+```typescript
+// Cache common beginner responses
+const responseCacheKey = (scenario: string, userInput: string, level: string) => 
+  `cache:${scenario}:${level}:${hashInput(userInput)}`;
+
+// Example: "مرحبا" (hello) in 'introduction' scenario
+// → Pre-generated response cached
+// → Cost: 0$ instead of 0.03$
+
+// Estimated savings: 30% on beginner conversations
+```
+
+---
+
+## 🚀 DEVELOPMENT PHASES
+
+### PHASE 1: MVP Core (TODAY - 8 hours with Cursor)
+
+#### Session 1 (3 hours): Setup + Basic Chat
+```bash
+# 1. Initialize Next.js project (30 min)
+npx create-next-app@latest arabic-conversation-app --typescript --tailwind --app
+cd arabic-conversation-app
+npx shadcn-ui@latest init
+
+# 2. Install dependencies
+npm install @anthropic-ai/sdk framer-motion howler zustand
+
+# 3. Setup folder structure
+/app
+  /api
+    /chat/route.ts           # Claude API integration
+    /auth/[...supabase]/route.ts  # Supabase auth
+  /(authenticated)
+    /dashboard/page.tsx      # Main dashboard
+    /chat/[scenarioId]/page.tsx  # Conversation interface
+  /(public)
+    /page.tsx                # Landing page
+    /pricing/page.tsx        # Pricing table
+
+/components
+  /ui                        # Shadcn components
+  /chat
+    /ChatInterface.tsx       # Main chat UI
+    /MessageBubble.tsx       # Individual messages
+    /CorrectionPopup.tsx     # Inline corrections
+  /avatar
+    /GestureAvatar.tsx       # Animated avatar
+    /AvatarGestures.ts       # Gesture animations
+  /scenarios
+    /ScenarioCard.tsx        # Scenario selection
+    /BackgroundScene.tsx     # Dynamic backgrounds
+
+/lib
+  /supabase.ts              # Supabase client
+  /anthropic.ts             # Claude API wrapper
+  /prompts.ts               # System prompts
+  /scenarios.ts             # Scenario configurations
+  /constants.ts             # App constants
+
+# 4. Create basic chat interface (1h)
+- Text input/output only
+- Message bubbles (user vs AI)
+- Scroll to bottom on new message
+
+# 5. Integrate Claude API (1h)
+- API route with streaming
+- System prompt for Arabic tutor persona
+- Handle Arabic RTL text properly
+```
+
+#### Session 2 (3 hours): AI Conversational Logic
+```typescript
+// 6. System prompt configuration (1h)
+const buildSystemPrompt = (level: Level, language: Language) => `
+You are a friendly Arabic language tutor helping someone practice conversation.
+
+LANGUAGE: ${language === 'msa' ? 'Modern Standard Arabic (الفصحى)' : 'Moroccan Darija (الدارجة المغربية)'}
+STUDENT LEVEL: ${level}
+
+YOUR ROLE:
+- Engage in natural conversation about the scenario
+- ${levelConfigs[level].systemPrompt}
+- When student makes an error, gently correct them in your next response
+- Use this format for corrections:
+  "تقريباً صحيح! 👋 لكن نقول: [correct version]
+   [Brief explanation in Arabic]
+   [Continue conversation naturally]"
+
+IMPORTANT RULES:
+- Always respond in Arabic (${language})
+- Be encouraging and patient
+- Keep responses conversational, not lecture-style
+- If student uses wrong language (MSA when Darija expected), gently remind them
+- Track new vocabulary they use successfully
+
+Current scenario: {scenario.name} - {scenario.description}
+`;
+
+// 7. Implement language selection (30 min)
+// Toggle between MSA / Darija
+// Store preference in user profile
+
+// 8. Create first scenario: "التعارف" (Introduction) (1h)
+const introductionScenario = {
+  systemContext: `You're meeting someone new at a cafe in Morocco. 
+                  Start by greeting them warmly and asking their name.
+                  Topics: name, age, city, work, hobbies.`,
+  starterMessage: {
+    msa: "السلام عليكم! أنا سعيد بلقائك. ما اسمك؟",
+    darija: "السلام! واش كتعرف تهضر بالدارجة؟ شنو سميتك؟"
+  },
+};
+
+// 9. Real-time correction detection (30 min)
+// Parse AI response for correction patterns
+// Highlight corrected words in UI
+```
+
+#### Session 3 (2 hours): Avatar + Polish
+```typescript
+// 10. Gestural Avatar Implementation (1h)
+// SVG-based abstract humanoid
+// Framer Motion animations:
+//   - Idle: gentle sway
+//   - Speaking: subtle pulse/glow
+//   - Listening: stillness
+//   - Correcting: hand gesture pointing
+
+// 11. Background for "Cafe" scenario (30 min)
+// CSS gradient + SVG illustrations (tables, zellige pattern)
+// Ambient sound loop (coffee shop ambiance)
+
+// 12. Make it a PWA (30 min)
+// Install next-pwa
+// Create manifest.json
+// Add service worker
+// Test "Add to Home Screen"
+```
+
+**END OF DAY DELIVERABLE:**
+✅ Working Next.js app deployed on Vercel
+✅ Text-based chat with Claude API (Arabic conversation)
+✅ 1 scenario working ("Introduction")
+✅ Language toggle (MSA/Darija)
+✅ Real-time corrections visible
+✅ Animated avatar (basic gestures)
+✅ PWA installable
+✅ Responsive mobile/desktop
+
+**NOT INCLUDED TODAY (Phase 2):**
+- Voice mode (STT/TTS)
+- Multiple scenarios
+- User authentication
+- Payment integration
+- Progress tracking
+- Vocabulary flashcards
+
+---
+
+### PHASE 2: Full Features (Week 2-3)
+- Supabase auth + database
+- All beginner/intermediate scenarios
+- Progress tracking dashboard
+- Spaced repetition flashcards
+- Stripe payment integration
+- Email verification
+- Rate limiting enforcement
+
+### PHASE 3: Premium Features (Week 4)
+- Voice mode (Whisper STT + Google TTS)
+- Offline mode (PWA caching)
+- Advanced scenarios
+- Vocabulary export (PDF/Anki)
+- Pronunciation scoring
+- Gamification (streaks, badges)
+
+### PHASE 4: Launch & Iteration (Week 5-6)
+- Landing page + marketing site
+- Beta testing (20 users)
+- Analytics (Mixpanel/Posthog)
+- Bug fixes
+- Performance optimization
+- SEO optimization
+
+---
+
+## 🎯 SUCCESS METRICS
+
+### Technical KPIs
+- Page load < 2s (Lighthouse score > 90)
+- API response time < 1s
+- PWA installable on mobile/desktop
+- Zero errors in Sentry (error tracking)
+
+### Business KPIs (3 months post-launch)
+- 1000 signups (free + premium)
+- 15% free → premium conversion
+- 50 active premium subscribers (= 500€ MRR)
+- < 5% monthly churn
+- Average 3 conversations/user/week
+
+### User Experience KPIs
+- 80% complete onboarding
+- Average session duration > 8 minutes
+- 60% return within 7 days
+- NPS score > 40
+
+---
+
+## 🚫 CRITICAL RESTRICTIONS
+
+### NEVER DO:
+1. **NO realistic human faces/eyes in avatar** (Islamic guideline violation)
+2. **NO unlimited free access** (business suicide)
+3. **NO storing API keys in frontend** (security breach)
+4. **NO generic fonts** (Inter, Roboto, Arial = lazy design)
+5. **NO purple gradients on white** (AI slop aesthetic)
+6. **NO skipping email verification** (spam/abuse magnet)
+7. **NO complex onboarding** (< 2 minutes to first conversation)
+8. **NO unvalidated Arabic text** (encoding issues, mojibake)
+
+### ALWAYS DO:
+1. **RTL support** for Arabic text (dir="rtl")
+2. **Validate Stripe webhooks** (payment security)
+3. **Rate limit ALL API routes** (prevent abuse)
+4. **Log corrections** in database (analytics gold)
+5. **Cache common responses** (save API costs)
+6. **Error boundaries** around AI calls (graceful failures)
+7. **Accessibility** (ARIA labels, keyboard navigation)
+8. **Mobile-first design** (primary usage device)
+
+---
+
+## 📝 CODING STANDARDS
+
+### TypeScript
+```typescript
+// Strict mode enabled
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true
+  }
+}
+
+// All functions typed
+function sendMessage(
+  content: string, 
+  userId: string, 
+  scenarioId: string
+): Promise<ConversationResponse> {
+  // ...
+}
+
+// No 'any' types allowed (use 'unknown' if truly dynamic)
+```
+
+### Component Structure
+```tsx
+// Functional components with TypeScript
+interface ChatInterfaceProps {
+  scenarioId: string;
+  userLevel: Level;
+  language: Language;
+}
+
+export function ChatInterface({ 
+  scenarioId, 
+  userLevel, 
+  language 
+}: ChatInterfaceProps) {
+  // Hooks at top
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Event handlers
+  const handleSendMessage = async (content: string) => {
+    // ...
+  };
+  
+  // Render
+  return (
+    <div className="chat-container">
+      {/* ... */}
+    </div>
+  );
+}
+```
+
+### API Routes
+```typescript
+// app/api/chat/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. Authenticate user
+    const user = await authenticate(req);
+    
+    // 2. Validate request body
+    const { message, scenarioId, language } = await req.json();
+    
+    // 3. Check rate limits
+    await checkRateLimits(user.id, user.plan);
+    
+    // 4. Call Claude API
+    const response = await generateResponse(message, scenarioId, language, user.level);
+    
+    // 5. Save to database
+    await saveConversation(user.id, message, response);
+    
+    // 6. Return response
+    return NextResponse.json({ success: true, response });
+    
+  } catch (error) {
+    console.error('Chat API error:', error);
+    return NextResponse.json(
+      { error: error.message }, 
+      { status: error.status || 500 }
+    );
+  }
+}
+```
+
+### CSS/Tailwind
+```tsx
+// Use Tailwind utilities, custom CSS only for complex animations
+<div className="
+  flex flex-col h-screen
+  bg-gradient-to-br from-primary-night to-neutral-warm-gray
+  text-neutral-sand
+  rtl:text-right ltr:text-left
+">
+  {/* Arabic text auto-RTL */}
+  <p className="font-arabic-body text-lg" dir="rtl">
+    مرحبا بك في التطبيق
+  </p>
+</div>
+
+// Custom CSS only for what Tailwind can't do
+@keyframes avatar-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.avatar-speaking {
+  animation: avatar-pulse 2s ease-in-out infinite;
+}
+```
+
+---
+
+## 🧪 TESTING REQUIREMENTS
+
+### Before Deploy
+- [ ] Test Arabic input (MSA + Darija)
+- [ ] Test RTL layout (no overlap issues)
+- [ ] Test on mobile (responsive)
+- [ ] Test PWA install (Chrome, Safari)
+- [ ] Test rate limiting (hit free plan limit)
+- [ ] Test payment flow (Stripe test mode)
+- [ ] Test error states (API failures)
+- [ ] Test offline mode (premium users)
+- [ ] Lighthouse score > 90
+- [ ] No console errors
+
+### Beta Testing Checklist
+- [ ] 5 native Arabic speakers test conversations
+- [ ] 5 French/English learners test onboarding
+- [ ] Collect feedback on correction frequency
+- [ ] Verify avatar is culturally appropriate
+- [ ] Test on iOS Safari (PWA quirks)
+- [ ] Test on Android Chrome
+- [ ] Verify Stripe webhooks in production
+
+---
+
+## 📦 DEPLOYMENT
+
+### Environment Variables (.env.local)
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Anthropic (Claude API)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# OpenAI (Whisper - premium only)
+OPENAI_API_KEY=sk-...
+
+# Google Cloud (TTS - premium only)
+GOOGLE_CLOUD_API_KEY=...
+
+# Stripe
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# App Config
+NEXT_PUBLIC_APP_URL=https://arabic-conversation.app
+```
+
+### Vercel Deployment
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+
+# Set environment variables in Vercel dashboard
+# Enable Edge Functions for API routes (faster globally)
+```
+
+### Supabase Setup
+```sql
+-- Run migrations from /supabase/migrations
+-- Enable Row Level Security (RLS)
+-- Create policies for user data isolation
+```
+
+---
+
+## 🎨 DESIGN PRINCIPLES
+
+1. **Bold & Distinctive**: No generic AI aesthetics
+2. **Culturally Respectful**: Islamic design patterns, halal-compliant
+3. **Arabic-First**: RTL properly implemented, beautiful Arabic typography
+4. **Immersive**: Backgrounds + ambient sounds = presence
+5. **Encouraging**: Corrections are gentle, not punitive
+6. **Mobile-Optimized**: Most users on phones
+7. **Fast**: < 2s page load, instant UI feedback
+
+---
+
+## 🔄 ITERATION PRIORITIES
+
+### After MVP Launch (Week 1-2)
+1. Fix critical bugs from beta
+2. Add 2-3 more beginner scenarios
+3. Improve correction explanations (user feedback)
+4. Add pronunciation tips (text-based, not audio yet)
+
+### Month 2
+1. Implement voice mode (STT/TTS)
+2. Add all intermediate scenarios
+3. Build spaced repetition system
+4. Stripe integration + premium features
+
+### Month 3
+1. Advanced scenarios
+2. Gamification (streaks, badges)
+3. Referral program (get 1 month free)
+4. Marketing push (Reddit, Facebook groups)
+
+### Month 4-6
+1. iOS/Android native apps (React Native - after formation)
+2. Web version optimization
+3. B2B partnerships (language schools)
+4. Content expansion (cultural lessons)
+
+---
+
+## ✅ DEFINITION OF DONE (MVP)
+
+An MVP is complete when:
+- [x] User can sign up with Google/Apple
+- [x] User can select MSA or Darija
+- [x] User can select beginner level
+- [x] User can start "Introduction" scenario
+- [x] User can type messages in Arabic
+- [x] Claude AI responds naturally in chosen language
+- [x] Corrections appear in conversation
+- [x] Avatar animates with gestures
+- [x] Background matches scenario
+- [x] Free plan limit enforced (2 conversations/month)
+- [x] Conversation saves to database
+- [x] PWA installable on mobile
+- [x] Deployed to production (Vercel)
+- [x] Zero critical bugs
+- [x] Lighthouse score > 85
+- [x] Load time < 3s on 3G
+
+---
+
+## 🚀 LET'S BUILD!
+
+**Today's Goal:** Working MVP in 8 hours
+**Start Time:** Now
+**End Time:** End of Cursor subscription
+
+**First Command to Run:**
+```bash
+npx create-next-app@latest arabic-conversation-app \
+  --typescript \
+  --tailwind \
+  --app \
+  --src-dir \
+  --import-alias "@/*"
+
+cd arabic-conversation-app
+npx shadcn-ui@latest init
+```
+
+**Then follow Phase 1 Session-by-session.**
+
+Good luck! 🎯🚀

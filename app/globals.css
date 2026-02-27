@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&family=Figtree:wght@400;500;600;700&display=swap');
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary-night: #1a2332;
+  --primary-gold: #d4af37;
+  --secondary-terracotta: #c46845;
+  --secondary-olive: #556b2f;
+  --neutral-sand: #f5f5dc;
+  --neutral-warm-gray: #8b8378;
+  --error-red: #e74c3c;
+  --success-green: #27ae60;
+  --warning-orange: #f39c12;
+  
+  --background: var(--primary-night);
+  --foreground: var(--neutral-sand);
+  
+  --font-arabic-display: 'Cairo', sans-serif;
+  --font-arabic-body: 'Tajawal', sans-serif;
+  --font-latin: 'Figtree', sans-serif;
 }
 
 @theme inline {
+  --color-primary-night: var(--primary-night);
+  --color-primary-gold: var(--primary-gold);
+  --color-secondary-terracotta: var(--secondary-terracotta);
+  --color-secondary-olive: var(--secondary-olive);
+  --color-neutral-sand: var(--neutral-sand);
+  --color-neutral-warm-gray: var(--neutral-warm-gray);
+  --color-error-red: var(--error-red);
+  --color-success-green: var(--success-green);
+  --color-warning-orange: var(--warning-orange);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-arabic-display: var(--font-arabic-display);
+  --font-arabic-body: var(--font-arabic-body);
+  --font-latin: var(--font-latin);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-latin);
+}
+
+@keyframes avatar-pulse {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.8; 
+    transform: scale(1.05); 
+  }
+}
+
+.avatar-speaking {
+  animation: avatar-pulse 2s ease-in-out infinite;
+}
+
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.ltr {
+  direction: ltr;
+  text-align: left;
 }
