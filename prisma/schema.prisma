@@ -22,6 +22,9 @@ model User {
   preferredLanguage String   @default("msa")
   streakDays        Int      @default(0)
   lastActiveDate    DateTime?
+  
+  stripeCustomerId    String?
+  subscriptionStatus  String?
 
   accounts           Account[]
   sessions           Session[]

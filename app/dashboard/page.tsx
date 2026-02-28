@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { SignOutButton } from '@/components/auth/SignOutButton';
+import { ManageSubscriptionButton } from '@/components/stripe/ManageSubscriptionButton';
 import Link from 'next/link';
 
 export default async function DashboardPage() {
@@ -74,7 +75,7 @@ export default async function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Plan Badge */}
-        <div className="mb-6">
+        <div className="mb-6 flex items-center gap-3">
           <span
             className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
               isFreePlan
@@ -84,13 +85,15 @@ export default async function DashboardPage() {
           >
             {isFreePlan ? '📦 Plan Gratuit' : '⭐ Plan Premium'}
           </span>
-          {isFreePlan && (
+          {isFreePlan ? (
             <Link
               href="/pricing"
-              className="ml-3 text-primary-gold hover:text-primary-gold/80 text-sm font-medium"
+              className="px-4 py-2 bg-primary-gold text-primary-night rounded-full text-sm font-semibold hover:bg-primary-gold/90 transition-colors"
             >
-              Passer à Premium →
+              ⬆️ Passer à Premium
             </Link>
+          ) : (
+            <ManageSubscriptionButton isPremium={true} />
           )}
         </div>
 
