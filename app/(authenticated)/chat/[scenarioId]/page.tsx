@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { ChatInterface } from '@/components/chat/ChatInterface';
 import { GestureAvatar } from '@/components/avatar/GestureAvatar';
+import { ScenarioBackground } from '@/components/scenarios/ScenarioBackground';
+import { AmbientSound } from '@/components/audio/AmbientSound';
 import { getScenarioById, getStarterMessage } from '@/lib/scenarios';
 import { Level, Language } from '@/lib/constants';
 import { use } from 'react';
@@ -15,6 +17,7 @@ export default function ChatPage({ params }: PageProps) {
   const { scenarioId } = use(params);
   const [language, setLanguage] = useState<Language>('msa');
   const [level] = useState<Level>('beginner');
+  const [isSpeaking, setIsSpeaking] = useState(false);
   
   const scenario = getScenarioById(scenarioId);
   
@@ -32,20 +35,32 @@ export default function ChatPage({ params }: PageProps) {
   const initialMessage = getStarterMessage(scenario, language);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary-night to-neutral-warm-gray">
-      <header className="border-b border-neutral-warm-gray/30 p-4">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* Background immersif */}
+      <ScenarioBackground scenario={scenario} />
+
+      {/* Overlay semi-transparent pour lisibilité */}
+      <div className="absolute inset-0 bg-primary-night/60 backdrop-blur-sm -z-5" />
+
+      {/* Ambient Sound */}
+      <AmbientSound scenarioId={scenarioId} volume={0.12} autoPlay={true} />
+
+      <header className="border-b border-neutral-warm-gray/30 p-4 relative z-10 bg-primary-night/40 backdrop-blur-md">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-neutral-sand font-arabic-display rtl" dir="rtl">
               {scenario.name}
             </h1>
             <p className="text-neutral-warm-gray text-sm font-latin">
               {scenario.nameEn}
             </p>
+            <p className="text-neutral-sand/60 text-xs font-latin mt-1">
+              🎵 {scenario.ambient}
+            </p>
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="flex gap-2 bg-neutral-warm-gray/20 rounded-full p-1">
+            <div className="flex gap-2 bg-neutral-warm-gray/20 rounded-full p-1 backdrop-blur-sm">
               <button
                 onClick={() => setLanguage('msa')}
                 className={`
@@ -74,13 +89,14 @@ export default function ChatPage({ params }: PageProps) {
             
             <GestureAvatar 
               color={scenario.avatarColor}
-              isSpeaking={false}
+              isSpeaking={isSpeaking}
+              size="small"
             />
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-6xl mx-auto w-full">
+      <main className="flex-1 max-w-6xl mx-auto w-full relative z-10">
         <ChatInterface
           scenarioId={scenarioId}
           userLevel={level}

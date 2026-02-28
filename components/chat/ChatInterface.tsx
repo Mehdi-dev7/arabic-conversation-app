@@ -5,8 +5,10 @@ import { MessageBubble } from './MessageBubble';
 import { CorrectionPopup } from './CorrectionPopup';
 import { VoiceRecorder } from '../voice/VoiceRecorder';
 import { AudioPlayer } from '../voice/AudioPlayer';
+import { HelpSuggestion } from '../help/HelpSuggestion';
 import { Level, Language } from '@/lib/constants';
 import { Correction, parseCorrectionFromResponse } from '@/lib/prompts';
+import { getScenarioById } from '@/lib/scenarios';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -41,6 +43,7 @@ export function ChatInterface({
   const [isLoading, setIsLoading] = useState(false);
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -204,16 +207,56 @@ export function ChatInterface({
 
       {/* Input Area */}
       {isVoiceMode ? (
-        <div className="border-t border-neutral-warm-gray/30 p-6">
+        <div className="border-t border-neutral-warm-gray/30 p-6 relative">
+          <HelpSuggestion
+            scenario={getScenarioById(scenarioId)!}
+            language={language}
+            onSelectSuggestion={async (text) => {
+              await processMessage(text);
+            }}
+            show={showHelp}
+          />
           <VoiceRecorder
             onTranscription={handleVoiceTranscription}
             language={language}
             disabled={isLoading || isSpeaking}
           />
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            className="absolute top-8 right-8 bg-primary-gold/20 hover:bg-primary-gold/30 text-primary-gold rounded-full p-2 transition-colors"
+            aria-label="عرض المساعدة"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </button>
         </div>
       ) : (
-        <form onSubmit={handleSendMessage} className="border-t border-neutral-warm-gray/30 p-4">
+        <form onSubmit={handleSendMessage} className="border-t border-neutral-warm-gray/30 p-4 relative">
+          <HelpSuggestion
+            scenario={getScenarioById(scenarioId)!}
+            language={language}
+            onSelectSuggestion={(text) => {
+              setInputValue(text);
+              setShowHelp(false);
+            }}
+            show={showHelp}
+          />
           <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowHelp(!showHelp)}
+              className="bg-primary-gold/20 hover:bg-primary-gold/30 text-primary-gold rounded-full p-3 transition-colors"
+              aria-label="عرض المساعدة"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
             <input
               type="text"
               value={inputValue}
