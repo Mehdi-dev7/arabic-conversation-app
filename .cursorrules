@@ -210,38 +210,218 @@ scenarios = {
 
 ## 🎓 LEARNING FEATURES
 
-### Difficulty Levels
+### 🌟 WARM-UP RITUAL (Daily Login)
+
+Every time user logs in, start with a brief warm-up conversation:
+
 ```typescript
-type Level = 'beginner' | 'intermediate' | 'advanced';
+interface WarmUpSession {
+  greetings: boolean;      // "مرحباً! كيف حالك؟"
+  dateQuestion: boolean;   // "ما هو تاريخ اليوم؟"
+  weatherQuestion: boolean; // "كيف الطقس عندك؟"
+  completed: boolean;
+  xpEarned: number;        // +5 XP for completing
+}
+
+const warmUpFlow = async (user: User) => {
+  // 1. Greeting
+  aiMessage("مرحباً {user.name}! كيف حالك اليوم؟");
+  await userResponse();
+  
+  // 2. Date
+  aiMessage("ما هو تاريخ اليوم؟");
+  await userResponse();
+  
+  // 3. Weather
+  aiMessage("و كيف الطقس عندك في {user.location}؟");
+  await userResponse();
+  
+  // 4. Transition to dashboard
+  aiMessage("ممتاز! لنبدأ الدرس اليوم 🎯");
+  showDashboard();
+};
+```
+
+**Benefits:**
+- Daily vocabulary practice (dates, weather, feelings)
+- Engagement ritual
+- Natural transition to learning
+
+---
+
+### 📚 4-LEVEL PROGRESSIVE LEARNING PATH
+
+**CRITICAL INSIGHT:** Users can't start conversations without vocabulary. Progressive path ensures everyone can begin.
+
+```
+LEVEL 1: VOCABULARY ACQUISITION (FR → AR)
+├── AI speaks French
+├── Teaches 10-20 words per theme
+├── User translates FR → AR
+├── Flashcards + spaced repetition
+└── Goal: Build 300-500 word base
+
+LEVEL 2: COMPREHENSION (AR → FR)
+├── AI gives simple Arabic sentences
+├── User translates to French
+├── Verify understanding
+└── Goal: Recognize and understand Arabic
+
+LEVEL 3: ASSISTED CONVERSATION (Mixed FR/AR)
+├── AI speaks Arabic + French help if needed
+├── User responds in Arabic (errors OK)
+├── Gentle corrections
+└── Goal: Dare to speak Arabic
+
+LEVEL 4: PURE IMMERSION (100% AR)
+├── Natural Arabic conversation
+├── No French help (unless requested)
+├── Subtle corrections
+└── Goal: Conversational fluency
+```
+
+### Level Configurations
+
+```typescript
+type Level = 'vocabulary_acquisition' | 'comprehension' | 'assisted_conversation' | 'immersion';
 
 const levelConfigs = {
-  beginner: {
-    systemPrompt: `You are a patient Arabic tutor. Use simple sentences (5-8 words max). 
-                   Provide immediate, gentle corrections. Repeat user's message correctly.
-                   Translate complex words. Vocabulary < 500 words.`,
-    maxTokensPerMessage: 500,
-    correctionFrequency: 'immediate', // Every error
+  // LEVEL 1: Vocabulary Acquisition (FR → AR)
+  vocabulary_acquisition: {
+    number: 1,
+    name: 'اكتساب المفردات',
+    nameEn: 'Vocabulary Acquisition',
+    aiLanguage: 'french', // AI speaks French
+    userLanguage: 'arabic', // User responds in Arabic
+    systemPrompt: `You are a French-speaking Arabic teacher helping build vocabulary.
+                   Speak ONLY in French to the student.
+                   Teach 10-20 new Arabic words per session.
+                   Ask student to write/translate French words to Arabic.
+                   Use flashcard-style teaching.
+                   Provide pronunciation help.
+                   Vocabulary target: < 500 words.`,
+    maxTokensPerMessage: 300,
+    correctionFrequency: 'immediate',
     translationHelp: true,
+    subtitles: {
+      enabled: true,
+      language: 'french',
+      toggleable: true,
+    },
+    freeAccess: true, // COMPLETELY FREE to build vocabulary base
   },
   
-  intermediate: {
-    systemPrompt: `You are an encouraging Arabic tutor. Use natural conversational phrases.
-                   Introduce common idioms. Correct errors with brief explanations.
-                   Vocabulary 500-2000 words.`,
+  // LEVEL 2: Comprehension (AR → FR)
+  comprehension: {
+    number: 2,
+    name: 'الفهم',
+    nameEn: 'Comprehension',
+    aiLanguage: 'arabic', // AI speaks Arabic
+    userLanguage: 'french', // User translates to French
+    systemPrompt: `You are a French-speaking Arabic teacher testing comprehension.
+                   Give simple Arabic sentences for student to translate to French.
+                   Verify their French translations.
+                   Explain grammar/vocabulary in French when needed.
+                   Gradually increase sentence complexity.
+                   Vocabulary: 500-1000 words.`,
+    maxTokensPerMessage: 500,
+    correctionFrequency: 'moderate',
+    translationHelp: true,
+    subtitles: {
+      enabled: false,
+      toggleable: true,
+    },
+    freeAccess: 'limited', // 3 sessions free, then premium
+  },
+  
+  // LEVEL 3: Assisted Conversation (Mixed)
+  assisted_conversation: {
+    number: 3,
+    name: 'محادثة بمساعدة',
+    nameEn: 'Assisted Conversation',
+    aiLanguage: 'arabic_with_french_help', // Mostly Arabic, French hints
+    userLanguage: 'arabic',
+    systemPrompt: `You are an encouraging Arabic tutor for assisted conversation.
+                   Speak primarily in Arabic.
+                   Provide French hints/translations when student struggles.
+                   Example: "مرحباً! كيف حالك؟ (Bonjour ! Comment vas-tu ?)"
+                   Give gentle corrections with brief explanations.
+                   Vocabulary: 500-2000 words.`,
     maxTokensPerMessage: 1000,
-    correctionFrequency: 'moderate', // Major errors only
-    translationHelp: false,
+    correctionFrequency: 'real_time',
+    translationHelp: true,
+    subtitles: {
+      enabled: true, // Show French subtitles by default
+      toggleable: true,
+    },
+    freeAccess: false, // Premium only
   },
   
-  advanced: {
-    systemPrompt: `You are a sophisticated Arabic conversation partner. Use complex structures,
-                   idioms, and multiple registers. Debate topics. Subtle corrections.
-                   Vocabulary > 2000 words.`,
+  // LEVEL 4: Pure Immersion (100% AR)
+  immersion: {
+    number: 4,
+    name: 'الانغماس الكامل',
+    nameEn: 'Pure Immersion',
+    aiLanguage: 'arabic', // 100% Arabic
+    userLanguage: 'arabic',
+    systemPrompt: `You are a sophisticated Arabic conversation partner.
+                   Speak ONLY in Arabic - no French at all.
+                   Use complex structures, idioms, multiple registers.
+                   Debate topics naturally.
+                   Corrections should be subtle and in Arabic.
+                   Vocabulary: > 2000 words.`,
     maxTokensPerMessage: 2000,
-    correctionFrequency: 'minimal', // End of conversation summary
+    correctionFrequency: 'minimal',
     translationHelp: false,
+    subtitles: {
+      enabled: false,
+      toggleable: false, // No crutches at this level
+    },
+    freeAccess: false, // Premium only
   }
 };
+```
+
+### Automatic Level Progression
+
+```typescript
+interface LevelProgressionCriteria {
+  vocabularySize: number;
+  comprehensionScore: number;
+  productionScore: number;
+  conversationMinutes: number;
+}
+
+function canLevelUp(user: User): boolean {
+  const progress = user.progress;
+  
+  switch (user.currentLevel) {
+    case 'vocabulary_acquisition': // Level 1 → 2
+      return progress.vocabularySize >= 300 && 
+             progress.comprehensionScore >= 70;
+    
+    case 'comprehension': // Level 2 → 3
+      return progress.comprehensionScore >= 80 && 
+             progress.productionScore >= 50;
+    
+    case 'assisted_conversation': // Level 3 → 4
+      return progress.conversationMinutes >= 120 && // 2 hours
+             progress.productionScore >= 75;
+    
+    default:
+      return false;
+  }
+}
+
+// Celebratory level-up modal
+if (canLevelUp(user)) {
+  showModal({
+    title: "🎉 Félicitations !",
+    message: `Tu es prêt pour le Niveau ${nextLevel.number} : ${nextLevel.nameEn} !`,
+    action: "Commencer →",
+    animation: "confetti",
+  });
+}
 ```
 
 ### Language Modes
@@ -285,6 +465,337 @@ interface Correction {
 }
 ```
 
+### Subtitle System (Activatable/Deactivatable)
+
+**PURPOSE:** Help absolute beginners who know basic grammar/conjugation but lack vocabulary to understand AI responses.
+
+```typescript
+interface SubtitleConfig {
+  enabled: boolean;           // Show subtitles or not
+  toggleable: boolean;        // Can user turn on/off?
+  language: 'french' | 'english'; // Subtitle language
+  position: 'below_message' | 'overlay'; // Placement
+  style: 'subtle' | 'prominent'; // Visual style
+  autoDetectLevel: boolean;   // Auto-enable for beginners?
+}
+
+// Level-specific subtitle defaults
+const subtitlesByLevel = {
+  vocabulary_acquisition: {
+    enabled: true,            // ON by default (they need it!)
+    toggleable: true,
+    language: 'french',
+    position: 'below_message',
+    style: 'subtle',
+  },
+  
+  comprehension: {
+    enabled: false,           // OFF by default (testing comprehension)
+    toggleable: true,         // But can turn on if struggling
+    language: 'french',
+    position: 'below_message',
+    style: 'subtle',
+  },
+  
+  assisted_conversation: {
+    enabled: true,            // ON by default (assistance phase)
+    toggleable: true,
+    language: 'french',
+    position: 'below_message',
+    style: 'subtle',
+  },
+  
+  immersion: {
+    enabled: false,           // OFF completely (immersion = no crutches)
+    toggleable: false,        // Can't turn on at this level
+  },
+};
+```
+
+### Subtitle UI Implementation
+
+```tsx
+// Message Bubble Component with Subtitles
+<MessageBubble role="assistant" dir="rtl">
+  {/* Main Arabic message */}
+  <ArabicText className="text-lg font-arabic-body">
+    مرحباً! كيف حالك اليوم؟
+  </ArabicText>
+  
+  {/* Subtitle (if enabled) */}
+  {showSubtitles && (
+    <Subtitle 
+      className="text-sm text-gray-500 italic mt-2 border-t border-dashed pt-2"
+      dir="ltr"
+    >
+      Bonjour ! Comment vas-tu aujourd'hui ?
+    </Subtitle>
+  )}
+</MessageBubble>
+
+// Subtitle Toggle Button (in chat settings/toolbar)
+<SubtitleToggle>
+  <button 
+    onClick={() => setShowSubtitles(!showSubtitles)}
+    disabled={!currentLevel.subtitles.toggleable}
+  >
+    {showSubtitles ? (
+      <>👁️ Masquer sous-titres</>
+    ) : (
+      <>🙈 Afficher sous-titres</>
+    )}
+  </button>
+  
+  {!currentLevel.subtitles.toggleable && (
+    <Tooltip>Les sous-titres ne sont pas disponibles au niveau immersion</Tooltip>
+  )}
+</SubtitleToggle>
+```
+
+### AI Prompt for Subtitle Generation
+
+```typescript
+// System prompt addition for levels with subtitles
+const systemPromptWithSubtitles = `
+${baseSystemPrompt}
+
+IMPORTANT - SUBTITLE FORMAT:
+After each Arabic response, add a line break and provide a natural French translation.
+Use this exact format:
+
+[Your Arabic response]
+TRADUCTION: [French translation]
+
+Example:
+مرحباً! كيف حالك؟ هل أنت جاهز لنتعلم؟
+TRADUCTION: Bonjour ! Comment vas-tu ? Es-tu prêt à apprendre ?
+
+Rules for translations:
+- Natural, conversational French (not word-for-word)
+- Keep it concise
+- Don't translate proper nouns
+- Use same tone as Arabic (formal/informal)
+`;
+
+// Parse AI response to separate Arabic and translation
+function parseAIResponse(response: string): {
+  arabic: string;
+  translation: string | null;
+} {
+  const parts = response.split('TRADUCTION:');
+  
+  if (parts.length === 2) {
+    return {
+      arabic: parts[0].trim(),
+      translation: parts[1].trim(),
+    };
+  }
+  
+  // Fallback if AI didn't provide translation
+  return {
+    arabic: response.trim(),
+    translation: null,
+  };
+}
+
+// Display logic
+const { arabic, translation } = parseAIResponse(aiMessage);
+
+return (
+  <MessageBubble>
+    <ArabicText>{arabic}</ArabicText>
+    {showSubtitles && translation && (
+      <Subtitle>{translation}</Subtitle>
+    )}
+  </MessageBubble>
+);
+```
+
+### Subtitle Styling (Subtle & Non-Intrusive)
+
+```css
+/* Subtitle container */
+.subtitle {
+  font-size: 0.875rem;        /* 14px - smaller than main text */
+  color: #8b8378;             /* Warm gray - not too prominent */
+  font-style: italic;
+  font-family: var(--font-latin); /* Latin font for readability */
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #e0e0e0; /* Subtle separator */
+  direction: ltr;             /* Force LTR for French/English */
+  transition: opacity 0.2s ease;
+}
+
+/* Hover effect - make more visible when needed */
+.subtitle:hover {
+  opacity: 1;
+}
+
+/* Prominent style (if user prefers) */
+.subtitle--prominent {
+  font-size: 0.9375rem;       /* 15px - slightly larger */
+  color: #555;
+  opacity: 0.85;
+  border-top: 2px solid #d4af37; /* Gold accent */
+  font-weight: 500;
+}
+
+/* Dark mode adaptation */
+@media (prefers-color-scheme: dark) {
+  .subtitle {
+    color: #a0a0a0;
+    border-color: #404040;
+  }
+}
+```
+
+### User Preferences for Subtitles
+
+```typescript
+interface UserSubtitlePreferences {
+  autoEnable: boolean;        // Turn on automatically for new sessions?
+  style: 'subtle' | 'prominent';
+  fontSize: 'small' | 'medium' | 'large';
+  position: 'below' | 'overlay';
+}
+
+// Settings UI
+<SubtitleSettings>
+  <h3>Préférences sous-titres</h3>
+  
+  <Toggle>
+    <Label>Activer automatiquement</Label>
+    <Switch 
+      checked={prefs.autoEnable}
+      onChange={(val) => updatePrefs({ autoEnable: val })}
+    />
+    <Help>Les sous-titres s'activeront au début de chaque session</Help>
+  </Toggle>
+  
+  <Select>
+    <Label>Style</Label>
+    <Options>
+      <Option value="subtle">Discret (recommandé)</Option>
+      <Option value="prominent">Proéminent</Option>
+    </Options>
+  </Select>
+  
+  <Select>
+    <Label>Taille</Label>
+    <Options>
+      <Option value="small">Petit</Option>
+      <Option value="medium">Moyen</Option>
+      <Option value="large">Grand</Option>
+    </Options>
+  </Select>
+</SubtitleSettings>
+```
+
+### Example Conversation with Subtitles
+
+```
+AI (Arabic):
+مرحباً! أهلاً بك في الدرس اليوم. سنتعلم كلمات عن المطبخ.
+────────────────────────────────────────
+Bonjour ! Bienvenue dans la leçon d'aujourd'hui. Nous allons apprendre des mots sur la cuisine.
+
+User (Arabic):
+شكرا! أنا متحمس
+
+AI (Arabic):
+رائع! هل تعرف كلمة "سكين" بالعربية؟
+────────────────────────────────────────
+Super ! Connais-tu le mot "couteau" en arabe ?
+
+User (Arabic):
+نعم، سكين
+
+AI (Arabic):
+ممتاز! وماذا عن "ملعقة"؟
+────────────────────────────────────────
+Excellent ! Et qu'en est-il de "cuillère" ?
+```
+
+### Implementation in API Route
+
+```typescript
+// app/api/chat/route.ts
+export async function POST(req: Request) {
+  const { message, userId, scenarioId } = await req.json();
+  const user = await getUser(userId);
+  const levelConfig = levelConfigs[user.currentLevel];
+  
+  // Build system prompt with subtitle instruction if needed
+  let systemPrompt = buildSystemPrompt(user.currentLevel, user.language);
+  
+  if (levelConfig.subtitles.enabled || user.preferences.subtitlesEnabled) {
+    systemPrompt += `
+
+IMPORTANT: After each Arabic response, add a translation:
+TRADUCTION: [natural French translation]`;
+  }
+  
+  // Call Claude API
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    system: systemPrompt,
+    messages: conversationHistory,
+  });
+  
+  // Parse response
+  const { arabic, translation } = parseAIResponse(response.content[0].text);
+  
+  return NextResponse.json({
+    arabic,
+    translation,
+    showSubtitles: levelConfig.subtitles.enabled || user.preferences.subtitlesEnabled,
+  });
+}
+```
+
+### Analytics for Subtitle Usage
+
+```typescript
+// Track subtitle usage to understand user behavior
+interface SubtitleAnalytics {
+  userId: string;
+  sessionId: string;
+  subtitlesEnabled: boolean;
+  toggleCount: number;        // How many times toggled during session
+  percentageTimeEnabled: number; // % of session with subtitles on
+  level: Level;
+}
+
+// Insights to gather:
+// - Do users disable subtitles as they progress?
+// - Which levels need subtitles most?
+// - Does subtitle availability improve retention?
+```
+
+---
+
+### Subtitle System Summary
+
+**Levels with subtitles:**
+- ✅ Level 1 (Vocabulary): ON by default, toggleable
+- ✅ Level 2 (Comprehension): OFF by default, toggleable
+- ✅ Level 3 (Conversation): ON by default, toggleable
+- ❌ Level 4 (Immersion): Disabled completely
+
+**Benefits:**
+- Absolute beginners can understand AI responses
+- Confidence booster for vocabulary learners
+- Gradual weaning off subtitles as they progress
+- User control (can turn off when ready)
+
+**Best Practices:**
+- Subtle styling (not distracting)
+- Natural translations (not literal)
+- Quick toggle access
+- Respect user preferences
+
 ### Adaptive Progression
 ```typescript
 // Automatic level adjustment based on performance
@@ -308,91 +819,1429 @@ function evaluatePerformance(user_id: string): Promise<Level> {
 
 ---
 
-## 📚 SCENARIOS (Immersive Situations)
+## 📚 THEMES & SUB-THEMES (Hierarchical System)
 
-### Beginner Scenarios
+### Theme Structure
+
 ```typescript
-const beginnerScenarios = [
+interface Theme {
+  id: string;
+  name: string;          // Arabic name
+  nameEn: string;        // English/French name
+  icon: string;          // Emoji
+  level: 1 | 2 | 3 | 4;  // Required level
+  subthemes: SubTheme[];
+  progress: number;      // 0-100%
+  freeAccess: boolean;
+}
+
+interface SubTheme {
+  id: string;
+  name: string;
+  nameEn: string;
+  vocabulary: Word[];
+  scenarios?: Scenario[];
+  subthemes?: SubTheme[]; // Nested sub-themes possible!
+  completed: boolean;
+}
+
+interface Word {
+  ar: string;
+  fr: string;
+  pronunciation?: string;
+  example?: string;
+}
+```
+
+### Level 1 Themes (Vocabulary Acquisition)
+
+```typescript
+const level1Themes: Theme[] = [
   {
-    id: 'introduction',
-    name: 'التعارف',
-    nameEn: 'Self Introduction',
-    description: 'Learn to introduce yourself',
-    estimatedDuration: 5, // minutes
-    vocabulary: ['اسم', 'عمر', 'مدينة', 'عمل', 'هواية'],
-    freeAccess: true, // ONLY free scenario
+    id: 'greetings',
+    name: 'التحيات',
+    nameEn: 'Greetings & Introductions',
+    icon: '👋',
+    level: 1,
+    freeAccess: true, // FREE - everyone starts here
+    vocabulary: [
+      { ar: 'مرحباً', fr: 'Bonjour', pronunciation: 'Marhaban' },
+      { ar: 'السلام عليكم', fr: 'Paix sur vous', pronunciation: 'As-salamu alaykum' },
+      { ar: 'كيف حالك؟', fr: 'Comment vas-tu ?', pronunciation: 'Kayfa haluk?' },
+      { ar: 'شكراً', fr: 'Merci', pronunciation: 'Shukran' },
+      { ar: 'من فضلك', fr: 'S\'il te plaît', pronunciation: 'Min fadlak' },
+      { ar: 'ما اسمك؟', fr: 'Quel est ton nom ?', pronunciation: 'Ma ismuk?' },
+      { ar: 'أنا اسمي...', fr: 'Je m\'appelle...', pronunciation: 'Ana ismi...' },
+      // ... 15 total words
+    ],
+    progress: 0,
   },
+  
   {
-    id: 'cafe',
-    name: 'في المقهى',
-    nameEn: 'At the Cafe',
-    description: 'Order drinks, small talk with barista',
-    estimatedDuration: 8,
-    vocabulary: ['قهوة', 'شاي', 'سكر', 'ساخن', 'بارد'],
-    freeAccess: false,
+    id: 'house',
+    name: 'البيت',
+    nameEn: 'The House',
+    icon: '🏠',
+    level: 1,
+    freeAccess: true,
+    subthemes: [
+      {
+        id: 'bedroom',
+        name: 'غرفة النوم',
+        nameEn: 'Bedroom',
+        vocabulary: [
+          { ar: 'سرير', fr: 'Lit' },
+          { ar: 'وسادة', fr: 'Oreiller' },
+          { ar: 'خزانة', fr: 'Armoire' },
+          { ar: 'نافذة', fr: 'Fenêtre' },
+          { ar: 'باب', fr: 'Porte' },
+          // ... 20 words
+        ],
+        completed: false,
+      },
+      {
+        id: 'kitchen',
+        name: 'المطبخ',
+        nameEn: 'Kitchen',
+        subthemes: [ // NESTED sub-themes!
+          {
+            id: 'utensils',
+            name: 'أدوات المطبخ',
+            nameEn: 'Kitchen Utensils',
+            vocabulary: [
+              { ar: 'سكين', fr: 'Couteau' },
+              { ar: 'ملعقة', fr: 'Cuillère' },
+              { ar: 'شوكة', fr: 'Fourchette' },
+              { ar: 'طنجرة', fr: 'Casserole' },
+              { ar: 'كأس', fr: 'Verre' },
+              // ... 15 words
+            ],
+            completed: false,
+          },
+          {
+            id: 'appliances',
+            name: 'الأجهزة',
+            nameEn: 'Appliances',
+            vocabulary: [
+              { ar: 'ثلاجة', fr: 'Réfrigérateur' },
+              { ar: 'فرن', fr: 'Four' },
+              { ar: 'ميكرويف', fr: 'Micro-ondes' },
+              { ar: 'غسالة', fr: 'Lave-linge' },
+              // ... 15 words
+            ],
+            completed: false,
+          },
+        ],
+        scenarios: [
+          'Préparer un repas',
+          'Faire la vaisselle',
+          'Expliquer une recette',
+        ],
+        completed: false,
+      },
+      {
+        id: 'bathroom',
+        name: 'الحمام',
+        nameEn: 'Bathroom',
+        vocabulary: [
+          { ar: 'صابون', fr: 'Savon' },
+          { ar: 'فرشاة الأسنان', fr: 'Brosse à dents' },
+          { ar: 'معجون الأسنان', fr: 'Dentifrice' },
+          { ar: 'منشفة', fr: 'Serviette' },
+          { ar: 'مرآة', fr: 'Miroir' },
+          // ... 15 words
+        ],
+        completed: false,
+      },
+      {
+        id: 'living_room',
+        name: 'غرفة الجلوس',
+        nameEn: 'Living Room',
+        vocabulary: [
+          { ar: 'أريكة', fr: 'Canapé' },
+          { ar: 'تلفاز', fr: 'Télévision' },
+          { ar: 'طاولة', fr: 'Table' },
+          { ar: 'كرسي', fr: 'Chaise' },
+          // ... 15 words
+        ],
+        completed: false,
+      },
+    ],
+    progress: 0,
   },
+  
   {
-    id: 'market',
-    name: 'السوق',
-    nameEn: 'At the Market',
-    description: 'Buy fruits, vegetables, bargain',
-    estimatedDuration: 10,
-    vocabulary: ['طماطم', 'تفاح', 'كيلو', 'ثمن', 'رخيص'],
-    freeAccess: false,
+    id: 'food',
+    name: 'الطعام',
+    nameEn: 'Food & Drinks',
+    icon: '🍽️',
+    level: 1,
+    freeAccess: true,
+    subthemes: [
+      {
+        id: 'fruits',
+        name: 'الفواكه',
+        nameEn: 'Fruits',
+        vocabulary: [
+          { ar: 'تفاح', fr: 'Pomme' },
+          { ar: 'موز', fr: 'Banane' },
+          { ar: 'برتقال', fr: 'Orange' },
+          { ar: 'عنب', fr: 'Raisin' },
+          // ... 20 words
+        ],
+        completed: false,
+      },
+      {
+        id: 'vegetables',
+        name: 'الخضروات',
+        nameEn: 'Vegetables',
+        vocabulary: [
+          { ar: 'طماطم', fr: 'Tomate' },
+          { ar: 'بطاطس', fr: 'Pomme de terre' },
+          { ar: 'جزر', fr: 'Carotte' },
+          { ar: 'خيار', fr: 'Concombre' },
+          // ... 20 words
+        ],
+        completed: false,
+      },
+      {
+        id: 'drinks',
+        name: 'المشروبات',
+        nameEn: 'Drinks',
+        vocabulary: [
+          { ar: 'ماء', fr: 'Eau' },
+          { ar: 'قهوة', fr: 'Café' },
+          { ar: 'شاي', fr: 'Thé' },
+          { ar: 'عصير', fr: 'Jus' },
+          // ... 15 words
+        ],
+        completed: false,
+      },
+    ],
+    progress: 0,
   },
+  
+  {
+    id: 'numbers',
+    name: 'الأرقام',
+    nameEn: 'Numbers',
+    icon: '🔢',
+    level: 1,
+    freeAccess: true,
+    vocabulary: [
+      { ar: 'واحد', fr: '1 - Un' },
+      { ar: 'اثنان', fr: '2 - Deux' },
+      { ar: 'ثلاثة', fr: '3 - Trois' },
+      // ... up to 100
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'family',
+    name: 'العائلة',
+    nameEn: 'Family',
+    icon: '👨‍👩‍👧‍👦',
+    level: 1,
+    freeAccess: true,
+    vocabulary: [
+      { ar: 'أب', fr: 'Père' },
+      { ar: 'أم', fr: 'Mère' },
+      { ar: 'أخ', fr: 'Frère' },
+      { ar: 'أخت', fr: 'Sœur' },
+      { ar: 'جد', fr: 'Grand-père' },
+      { ar: 'جدة', fr: 'Grand-mère' },
+      // ... 20 words
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'colors',
+    name: 'الألوان',
+    nameEn: 'Colors',
+    icon: '🎨',
+    level: 1,
+    freeAccess: true,
+    vocabulary: [
+      { ar: 'أحمر', fr: 'Rouge' },
+      { ar: 'أزرق', fr: 'Bleu' },
+      { ar: 'أخضر', fr: 'Vert' },
+      { ar: 'أصفر', fr: 'Jaune' },
+      { ar: 'أبيض', fr: 'Blanc' },
+      { ar: 'أسود', fr: 'Noir' },
+      // ... 15 words
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'body',
+    name: 'الجسم',
+    nameEn: 'Body Parts',
+    icon: '🫱',
+    level: 1,
+    freeAccess: true,
+    vocabulary: [
+      { ar: 'رأس', fr: 'Tête' },
+      { ar: 'عين', fr: 'Œil' },
+      { ar: 'أذن', fr: 'Oreille' },
+      { ar: 'يد', fr: 'Main' },
+      { ar: 'قدم', fr: 'Pied' },
+      // ... 20 words
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'weather',
+    name: 'الطقس',
+    nameEn: 'Weather',
+    icon: '🌤️',
+    level: 1,
+    freeAccess: true,
+    vocabulary: [
+      { ar: 'شمس', fr: 'Soleil' },
+      { ar: 'مطر', fr: 'Pluie' },
+      { ar: 'رياح', fr: 'Vent' },
+      { ar: 'حار', fr: 'Chaud' },
+      { ar: 'بارد', fr: 'Froid' },
+      // ... 15 words
+    ],
+    progress: 0,
+  },
+  
+  // Total Level 1: ~300 words
 ];
 ```
 
-### Intermediate Scenarios
+### Level 2 Themes (Comprehension)
+
 ```typescript
-const intermediateScenarios = [
-  {
-    id: 'restaurant',
-    name: 'المطعم',
-    nameEn: 'Restaurant',
-    description: 'Full dining experience, menu discussion',
-    estimatedDuration: 15,
-  },
+const level2Themes: Theme[] = [
   {
     id: 'airport',
     name: 'المطار',
     nameEn: 'Airport',
-    description: 'Check-in, customs, gate navigation',
-    estimatedDuration: 12,
+    icon: '✈️',
+    level: 2,
+    freeAccess: false, // Premium
+    subthemes: [
+      {
+        id: 'check_in',
+        name: 'تسجيل الوصول',
+        nameEn: 'Check-in',
+        vocabulary: [
+          { ar: 'بطاقة صعود', fr: 'Carte d\'embarquement' },
+          { ar: 'حقيبة', fr: 'Valise' },
+          { ar: 'وزن زائد', fr: 'Excédent de bagages' },
+          // ... 20 words
+        ],
+        scenarios: [
+          'Enregistrement au comptoir',
+          'Gérer excédent bagages',
+        ],
+        completed: false,
+      },
+      {
+        id: 'customs',
+        name: 'الجمارك',
+        nameEn: 'Customs',
+        vocabulary: [
+          { ar: 'جواز سفر', fr: 'Passeport' },
+          { ar: 'تأشيرة', fr: 'Visa' },
+          { ar: 'تصريح', fr: 'Déclaration' },
+          // ... 15 words
+        ],
+        scenarios: [
+          'Passage douane',
+          'Répondre questions douanier',
+        ],
+        completed: false,
+      },
+      {
+        id: 'lost_luggage',
+        name: 'الأمتعة المفقودة',
+        nameEn: 'Lost Luggage',
+        vocabulary: [
+          { ar: 'مفقود', fr: 'Perdu' },
+          { ar: 'إعلان', fr: 'Déclaration' },
+          { ar: 'وصف', fr: 'Description' },
+          // ... 15 words
+        ],
+        scenarios: [
+          'Déclarer perte valise',
+          'Décrire bagages',
+        ],
+        completed: false,
+      },
+    ],
+    progress: 0,
   },
+  
+  {
+    id: 'restaurant',
+    name: 'المطعم',
+    nameEn: 'Restaurant',
+    icon: '🍽️',
+    level: 2,
+    freeAccess: false,
+    subthemes: [
+      {
+        id: 'ordering',
+        name: 'الطلب',
+        nameEn: 'Ordering',
+        vocabulary: [
+          { ar: 'قائمة', fr: 'Menu' },
+          { ar: 'طبق', fr: 'Plat' },
+          { ar: 'مشروب', fr: 'Boisson' },
+          // ... 25 words
+        ],
+        scenarios: ['Commander un repas'],
+        completed: false,
+      },
+      {
+        id: 'bill',
+        name: 'الحساب',
+        nameEn: 'Bill/Check',
+        vocabulary: [
+          { ar: 'فاتورة', fr: 'Addition' },
+          { ar: 'بقشيش', fr: 'Pourboire' },
+          // ... 10 words
+        ],
+        scenarios: ['Demander et payer l\'addition'],
+        completed: false,
+      },
+    ],
+    progress: 0,
+  },
+  
   {
     id: 'doctor',
     name: 'الطبيب',
     nameEn: 'Doctor Visit',
-    description: 'Describe symptoms, understand medical advice',
-    estimatedDuration: 15,
+    icon: '🏥',
+    level: 2,
+    freeAccess: false,
+    vocabulary: [
+      { ar: 'ألم', fr: 'Douleur' },
+      { ar: 'حمى', fr: 'Fièvre' },
+      { ar: 'دواء', fr: 'Médicament' },
+      // ... 30 words
+    ],
+    scenarios: [
+      'Décrire symptômes',
+      'Comprendre ordonnance',
+    ],
+    progress: 0,
+  },
+  
+  // Add more Level 2 themes...
+  // Total Level 2: +300 words (cumulative: 600)
+];
+```
+
+### Level 3/4 Themes (Conversation & Immersion)
+
+```typescript
+const level3_4Themes: Theme[] = [
+  {
+    id: 'business',
+    name: 'الأعمال',
+    nameEn: 'Business',
+    icon: '💼',
+    level: 3,
+    freeAccess: false,
+    scenarios: [
+      'Réunion professionnelle',
+      'Négociation commerciale',
+      'Présentation projet',
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'debate',
+    name: 'النقاش',
+    nameEn: 'Debate & Discussion',
+    icon: '🗣️',
+    level: 4,
+    freeAccess: false,
+    scenarios: [
+      'Débat politique',
+      'Discussion philosophique',
+      'Analyse littéraire',
+    ],
+    progress: 0,
+  },
+  
+  // ... more advanced themes
+];
+```
+
+### Theme Dashboard UI
+
+```tsx
+<ThemeDashboard>
+  {/* Warm-up status */}
+  <WarmupStatus completed={user.warmupToday}>
+    {user.warmupToday ? (
+      <span>✅ Warm-up du jour complété (+5 XP)</span>
+    ) : (
+      <button onClick={startWarmup}>Commencer warm-up quotidien →</button>
+    )}
+  </WarmupStatus>
+  
+  {/* Level progress */}
+  <LevelProgressBar>
+    <Step completed={user.currentLevel >= 1}>
+      Niveau 1: Vocabulaire {user.currentLevel === 1 && '🔄'}
+    </Step>
+    <Step completed={user.currentLevel >= 2}>
+      Niveau 2: Compréhension {user.currentLevel === 2 && '🔄'}
+    </Step>
+    <Step locked={user.currentLevel < 3}>
+      Niveau 3: Conversation {user.currentLevel === 3 && '🔄'} {user.currentLevel < 3 && '🔒'}
+    </Step>
+    <Step locked={user.currentLevel < 4}>
+      Niveau 4: Immersion {user.currentLevel === 4 && '🔄'} {user.currentLevel < 4 && '🔒'}
+    </Step>
+  </LevelProgressBar>
+  
+  {/* Suggested theme */}
+  <SuggestedTheme>
+    <h3>📚 Suggestion du jour</h3>
+    <ThemeCard theme={getNextTheme(user)}>
+      {theme.icon} {theme.nameEn}
+      <ProgressBar value={theme.progress} />
+      <button>Continuer →</button>
+    </ThemeCard>
+  </SuggestedTheme>
+  
+  {/* All themes grid */}
+  <ThemeGrid>
+    {themes
+      .filter(t => t.level <= user.currentLevel)
+      .map(theme => (
+        <ThemeCard 
+          key={theme.id}
+          locked={!theme.freeAccess && user.plan === 'free'}
+        >
+          <Icon>{theme.icon}</Icon>
+          <Name>{theme.nameEn}</Name>
+          <Progress>{theme.progress}%</Progress>
+          
+          {/* Expandable sub-themes */}
+          <Collapsible>
+            {theme.subthemes?.map(sub => (
+              <SubThemeItem completed={sub.completed}>
+                {sub.completed ? '✅' : '◻️'} {sub.nameEn}
+                
+                {/* Nested sub-themes */}
+                {sub.subthemes && (
+                  <NestedList>
+                    {sub.subthemes.map(nested => (
+                      <li>{nested.nameEn}</li>
+                    ))}
+                  </NestedList>
+                )}
+              </SubThemeItem>
+            ))}
+          </Collapsible>
+          
+          <ActionButton>
+            {theme.freeAccess || user.plan === 'premium' ? (
+              <span>Choisir →</span>
+            ) : (
+              <span>🔒 Premium</span>
+            )}
+          </ActionButton>
+        </ThemeCard>
+      ))}
+  </ThemeGrid>
+</ThemeDashboard>
+```
+
+## 🎭 INTERACTIVE STORIES (Multi-Character, Level 3-4 Only)
+
+### Story System Architecture
+
+```typescript
+interface Story {
+  id: string;
+  title: string;          // Arabic title
+  titleEn: string;        // French/English title
+  description: string;
+  level: 3 | 4;          // Advanced only
+  duration: number;       // Estimated minutes
+  characters: Character[];
+  scenes: Scene[];
+  achievements: Achievement[];
+}
+
+interface Character {
+  id: string;
+  name: string;          // Arabic name
+  nameEn: string;        // French name
+  role: string;          // 'taxi_driver', 'vendor', 'police', etc.
+  personality: string;   // 'friendly', 'grumpy', 'helpful', 'rushed'
+  dialect: 'msa' | 'darija';
+  
+  // Visual (halal-compliant)
+  avatar: {
+    type: 'svg' | 'lottie';
+    file: string;        // Path to avatar file
+    headShape: 'sphere' | 'oval'; // NO face
+    accessories: string[]; // ['hat', 'uniform', 'scarf']
+    dominantColor: string; // e.g., '#FFD700' for taxi
+  };
+  
+  // Audio
+  ambientSound?: string; // Character-specific sound (optional)
+}
+
+interface Scene {
+  id: string;
+  sceneNumber: number;
+  location: string;      // Arabic location name
+  locationEn: string;    // French location name
+  background: {
+    image: string;       // Background image path
+    style: 'realistic' | 'illustrated' | 'minimal';
+  };
+  audio: SceneAudio;
+  activeCharacter: string; // Character ID
+  objectives: string[];  // What user should accomplish
+  nextScene: string | ((userChoices: string[]) => string); // Next scene or branching
+}
+
+interface SceneAudio {
+  background: string;    // Loop ambient sound
+  character?: string;    // Character-specific sound
+  events: {
+    trigger: string;     // Event name
+    sound: string;       // Sound file
+    volume: number;      // 0-1
+  }[];
+}
+
+interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  condition: (storyState: any) => boolean;
+}
+```
+
+### Character Visual Design (Halal-Compliant)
+
+**MANDATORY RULES:**
+- NO facial features (eyes, mouth, nose)
+- Head = simple geometric shape (sphere, oval, glowing orb)
+- Body = minimalist silhouette
+- Identity through: clothing, accessories, colors, posture
+
+**Character Examples:**
+
+```typescript
+const characters = [
+  {
+    id: 'ahmed_taxi',
+    name: 'أحمد',
+    nameEn: 'Ahmed (Taxi Driver)',
+    role: 'taxi_driver',
+    personality: 'Talkative and curious',
+    dialect: 'darija',
+    avatar: {
+      type: 'svg',
+      file: '/avatars/taxi-driver.svg',
+      headShape: 'sphere',
+      accessories: ['cap', 'steering_wheel'], // 🧢
+      dominantColor: '#FFD700', // Yellow (taxi color)
+    },
+    ambientSound: 'radio-arabic-low.mp3',
+  },
+  
+  {
+    id: 'hassan_vendor',
+    name: 'حسان',
+    nameEn: 'Hassan (Spice Vendor)',
+    role: 'spice_vendor',
+    personality: 'Shrewd merchant who loves to negotiate',
+    dialect: 'darija',
+    avatar: {
+      type: 'svg',
+      file: '/avatars/spice-vendor.svg',
+      headShape: 'sphere',
+      accessories: ['turban', 'spice_tray'], // 🧕
+      dominantColor: '#D2691E', // Cinnamon brown
+    },
+    ambientSound: 'spices-pouring.mp3',
+  },
+  
+  {
+    id: 'sophie_tourist',
+    name: 'صوفي',
+    nameEn: 'Sophie (Lost Tourist)',
+    role: 'tourist',
+    personality: 'Lost and stressed',
+    dialect: 'msa', // Learned standard Arabic
+    avatar: {
+      type: 'svg',
+      file: '/avatars/tourist.svg',
+      headShape: 'sphere',
+      accessories: ['sun_hat', 'backpack', 'camera'], // 👒🎒📷
+      dominantColor: '#87CEEB', // Sky blue
+    },
+  },
+  
+  {
+    id: 'karim_police',
+    name: 'كريم',
+    nameEn: 'Officer Karim',
+    role: 'police_officer',
+    personality: 'Professional and helpful',
+    dialect: 'msa',
+    avatar: {
+      type: 'svg',
+      file: '/avatars/police.svg',
+      headShape: 'sphere',
+      accessories: ['police_cap', 'badge', 'walkie_talkie'], // 👮
+      dominantColor: '#000080', // Navy blue
+    },
+    ambientSound: 'walkie-talkie-static.mp3',
+  },
+  
+  {
+    id: 'fatima_carpet',
+    name: 'فاطمة',
+    nameEn: 'Fatima (Carpet Seller)',
+    role: 'carpet_seller',
+    personality: 'Warm and hospitable',
+    dialect: 'darija',
+    avatar: {
+      type: 'svg',
+      file: '/avatars/carpet-seller.svg',
+      headShape: 'sphere',
+      accessories: ['colorful_scarf', 'tea_pot'], // 🧕🍵
+      dominantColor: '#DC143C', // Crimson
+    },
+    ambientSound: 'tea-pouring.mp3',
   },
 ];
 ```
 
-### Advanced Scenarios
+### Example Story: "A Day at the Souk"
+
 ```typescript
-const advancedScenarios = [
+const soukAdventure: Story = {
+  id: 'souk_adventure',
+  title: 'يوم في السوق',
+  titleEn: 'A Day at the Souk',
+  description: 'Explore Marrakech souk and interact with various people',
+  level: 4,
+  duration: 30,
+  
+  characters: [
+    characters.find(c => c.id === 'ahmed_taxi'),
+    characters.find(c => c.id === 'hassan_vendor'),
+    characters.find(c => c.id === 'sophie_tourist'),
+    characters.find(c => c.id === 'karim_police'),
+  ],
+  
+  scenes: [
+    // SCENE 1: In the Taxi
+    {
+      id: 'scene_1_taxi',
+      sceneNumber: 1,
+      location: 'في التاكسي',
+      locationEn: 'In the Taxi',
+      background: {
+        image: '/backgrounds/taxi-interior.jpg',
+        style: 'illustrated',
+      },
+      audio: {
+        background: 'traffic-ambient.mp3',
+        character: 'radio-arabic-low.mp3',
+        events: [
+          { trigger: 'ahmed_speaks', sound: 'car-indicator.mp3', volume: 0.3 },
+          { trigger: 'user_asks_price', sound: 'meter-beep.mp3', volume: 0.5 },
+          { trigger: 'scene_end', sound: 'car-door-close.mp3', volume: 0.8 },
+        ],
+      },
+      activeCharacter: 'ahmed_taxi',
+      objectives: [
+        'Saluer le chauffeur',
+        'Indiquer destination (السوق)',
+        'Discuter du prix',
+        'Faire conversation (météo, ville)',
+      ],
+      nextScene: 'scene_2_souk_entrance',
+    },
+    
+    // SCENE 2: Souk Entrance
+    {
+      id: 'scene_2_souk_entrance',
+      sceneNumber: 2,
+      location: 'مدخل السوق',
+      locationEn: 'Souk Entrance',
+      background: {
+        image: '/backgrounds/souk-entrance.jpg',
+        style: 'illustrated',
+      },
+      audio: {
+        background: 'souk-crowd-loop.mp3',
+        character: 'spices-pouring.mp3',
+        events: [
+          { trigger: 'hassan_shows_saffron', sound: 'jar-open.mp3', volume: 0.4 },
+          { trigger: 'negotiation_starts', sound: 'merchant-call-distant.mp3', volume: 0.3 },
+          { trigger: 'purchase_complete', sound: 'coins-jingle.mp3', volume: 0.6 },
+        ],
+      },
+      activeCharacter: 'hassan_vendor',
+      objectives: [
+        'Approcher l\'étal d\'épices',
+        'Demander prix du safran',
+        'Négocier',
+        'Acheter ou refuser poliment',
+      ],
+      nextScene: (userChoices) => {
+        if (userChoices.includes('acheter')) {
+          return 'scene_3a_shopping_more';
+        } else {
+          return 'scene_3b_get_lost';
+        }
+      },
+    },
+    
+    // SCENE 3B: Lost in Souk (Branching path)
+    {
+      id: 'scene_3b_get_lost',
+      sceneNumber: 3,
+      location: 'ضاع في السوق',
+      locationEn: 'Lost in the Souk',
+      background: {
+        image: '/backgrounds/souk-alley.jpg',
+        style: 'illustrated',
+      },
+      audio: {
+        background: 'distant-voices.mp3',
+        events: [
+          { trigger: 'tourist_approaches', sound: 'camera-click.mp3', volume: 0.4 },
+          { trigger: 'map_unfold', sound: 'map-unfold.mp3', volume: 0.5 },
+        ],
+      },
+      activeCharacter: 'sophie_tourist',
+      objectives: [
+        'Une touriste te demande son chemin',
+        'Essayer de l\'aider en arabe',
+        'Utiliser vocabulaire: يمين (droite), يسار (gauche), مستقيم (tout droit)',
+      ],
+      nextScene: 'scene_4_police',
+    },
+    
+    // SCENE 4: With the Police Officer
+    {
+      id: 'scene_4_police',
+      sceneNumber: 4,
+      location: 'مع الشرطي',
+      locationEn: 'With the Police Officer',
+      background: {
+        image: '/backgrounds/police-stand.jpg',
+        style: 'illustrated',
+      },
+      audio: {
+        background: 'ambient-street.mp3',
+        character: 'walkie-talkie-static.mp3',
+        events: [
+          { trigger: 'police_helps', sound: 'whistle-police.mp3', volume: 0.3 },
+        ],
+      },
+      activeCharacter: 'karim_police',
+      objectives: [
+        'Demander ton chemin au policier',
+        'Ou signaler la touriste perdue',
+        'Vocabulaire formel (أين، كيف أصل إلى)',
+      ],
+      nextScene: 'scene_5_end',
+    },
+    
+    // SCENE 5: Story End
+    {
+      id: 'scene_5_end',
+      sceneNumber: 5,
+      location: 'نهاية الرحلة',
+      locationEn: 'End of Adventure',
+      background: {
+        image: '/backgrounds/souk-sunset.jpg',
+        style: 'illustrated',
+      },
+      audio: {
+        background: 'evening-souk.mp3',
+        events: [],
+      },
+      activeCharacter: null, // Narrator only
+      objectives: ['Récapitulatif de ton aventure'],
+      nextScene: null,
+    },
+  ],
+  
+  achievements: [
+    {
+      id: 'souk_negotiator',
+      name: 'Négociateur du Souk',
+      description: 'Tu as négocié avec succès le prix du safran',
+      icon: '🏆',
+      condition: (state) => state.negotiationSuccess === true,
+    },
+    {
+      id: 'good_samaritan',
+      name: 'Bon Samaritain',
+      description: 'Tu as aidé la touriste perdue',
+      icon: '🌟',
+      condition: (state) => state.helpedTourist === true,
+    },
+  ],
+};
+```
+
+### More Story Examples
+
+```typescript
+const stories: Story[] = [
+  // Level 3 Stories
+  {
+    id: 'doctor_visit',
+    title: 'عند الطبيب',
+    titleEn: 'At the Doctor',
+    level: 3,
+    duration: 25,
+    characters: ['receptionist', 'doctor', 'pharmacist'],
+    scenes: ['Reception', 'Waiting room', 'Consultation', 'Pharmacy'],
+  },
+  
   {
     id: 'job_interview',
-    name: 'المقابلة',
-    nameEn: 'Job Interview',
-    description: 'Professional interview, career discussion',
-    estimatedDuration: 20,
+    title: 'مقابلة العمل',
+    titleEn: 'Job Interview',
+    level: 3,
+    duration: 30,
+    characters: ['hr_manager', 'team_lead', 'future_colleague'],
+    scenes: ['Reception', 'HR Interview', 'Technical test', 'Office tour'],
   },
+  
+  // Level 4 Stories
   {
-    id: 'debate',
-    name: 'النقاش',
-    nameEn: 'Debate',
-    description: 'Discuss politics, society, philosophy',
-    estimatedDuration: 25,
+    id: 'apartment_problem',
+    title: 'حل مشكلة',
+    titleEn: 'Solving a Problem',
+    level: 4,
+    duration: 35,
+    characters: ['landlord', 'plumber', 'neighbor', 'insurance_agent'],
+    scenes: ['Water leak discovered', 'Call plumber', 'Neighbor dispute', 'Insurance claim'],
+  },
+  
+  {
+    id: 'morocco_trip',
+    title: 'سفر إلى المغرب',
+    titleEn: 'Trip to Morocco',
+    level: 4,
+    duration: 45,
+    characters: ['flight_attendant', 'customs_officer', 'taxi_driver', 'hotel_receptionist', 'tour_guide'],
+    scenes: ['On the plane', 'Customs', 'Taxi to hotel', 'Hotel check-in', 'Guided tour'],
   },
 ];
 ```
+
+### Audio System Implementation
+
+```typescript
+// Audio Manager with Howler.js
+class StoryAudioManager {
+  private backgroundLoop: Howl;
+  private characterLoop?: Howl;
+  private eventSounds: Map<string, Howl>;
+  
+  constructor(sceneAudio: SceneAudio) {
+    // Background ambient (loop)
+    this.backgroundLoop = new Howl({
+      src: [`/audio/ambient/${sceneAudio.background}`],
+      loop: true,
+      volume: 0.4,
+      html5: true, // Streaming for large files
+    });
+    
+    // Character sound (loop, optional)
+    if (sceneAudio.character) {
+      this.characterLoop = new Howl({
+        src: [`/audio/character/${sceneAudio.character}`],
+        loop: true,
+        volume: 0.2,
+      });
+    }
+    
+    // Preload event sounds
+    sceneAudio.events.forEach(event => {
+      this.eventSounds.set(event.trigger, new Howl({
+        src: [`/audio/events/${event.sound}`],
+        volume: event.volume,
+      }));
+    });
+  }
+  
+  start() {
+    this.backgroundLoop.play();
+    this.characterLoop?.play();
+  }
+  
+  playEvent(trigger: string) {
+    const sound = this.eventSounds.get(trigger);
+    if (sound) {
+      sound.play();
+    }
+  }
+  
+  stop() {
+    this.backgroundLoop.fade(0.4, 0, 1000); // Fade out 1s
+    this.characterLoop?.fade(0.2, 0, 1000);
+    setTimeout(() => {
+      this.backgroundLoop.stop();
+      this.characterLoop?.stop();
+    }, 1000);
+  }
+  
+  transition(newSceneAudio: SceneAudio) {
+    // Crossfade between scenes
+    this.stop();
+    setTimeout(() => {
+      const newManager = new StoryAudioManager(newSceneAudio);
+      newManager.start();
+      return newManager;
+    }, 1000);
+  }
+}
+```
+
+### Character System Prompts (Multi-Character)
+
+```typescript
+// Dynamic system prompt per character
+const buildCharacterPrompt = (character: Character, scene: Scene) => `
+You are ${character.name} (${character.nameEn}), a ${character.role}.
+Personality: ${character.personality}
+Dialect: ${character.dialect === 'msa' ? 'Modern Standard Arabic' : 'Moroccan Darija'}
+
+CURRENT SCENE: ${scene.locationEn}
+Your role in this scene: ${getCharacterRole(character.id, scene)}
+
+OBJECTIVES for the user (guide them naturally):
+${scene.objectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
+
+YOUR INSTRUCTIONS:
+- Speak ONLY as ${character.name}
+- Stay in character (personality: ${character.personality})
+- Use ${character.dialect} dialect consistently
+- React naturally to user's responses
+- Guide user through objectives without being obvious
+- Don't break the 4th wall
+- When all objectives are naturally met, signal: [SCENE_COMPLETE]
+
+SCENE CONTEXT:
+${scene.description || ''}
+
+Begin the scene naturally with an appropriate greeting or action.
+`;
+
+// Switch character = new system prompt
+async function switchCharacter(
+  newCharacter: Character, 
+  scene: Scene,
+  conversationHistory: Message[]
+) {
+  const systemPrompt = buildCharacterPrompt(newCharacter, scene);
+  
+  // Transition UI
+  showCharacterTransition({
+    character: newCharacter,
+    location: scene.locationEn,
+  });
+  
+  // First message from new character
+  const greeting = await claude.messages.create({
+    model: "claude-sonnet-4-20250514",
+    system: systemPrompt,
+    messages: [
+      ...conversationHistory, // Keep context
+      { role: "user", content: "[USER_ARRIVES_AT_SCENE]" }
+    ],
+  });
+  
+  return greeting;
+}
+```
+
+### Story UI Components
+
+```tsx
+<StoryMode>
+  {/* Scene header */}
+  <SceneHeader>
+    <LocationBadge>📍 {currentScene.locationEn}</LocationBadge>
+    <ProgressBar>
+      Scène {currentScene.sceneNumber}/{totalScenes}
+    </ProgressBar>
+  </SceneHeader>
+  
+  {/* Dynamic background */}
+  <BackgroundImage 
+    src={currentScene.background.image}
+    style={currentScene.background.style}
+  />
+  
+  {/* Ambient audio (auto-play) */}
+  <AmbientAudio manager={audioManager} />
+  
+  {/* Active character (large, central) */}
+  <CharacterDisplay>
+    <CharacterAvatar
+      character={activeCharacter}
+      animation={isCharacterSpeaking ? 'talking' : 'idle'}
+    />
+    <CharacterBadge>
+      <Icon>{getCharacterIcon(activeCharacter)}</Icon>
+      <Name>{activeCharacter.nameEn}</Name>
+      <Role>{activeCharacter.role}</Role>
+    </CharacterBadge>
+  </CharacterDisplay>
+  
+  {/* Speech bubble */}
+  <SpeechBubble position="top-left" dir="rtl">
+    <Message>{activeCharacter.currentMessage}</Message>
+    {isSpeaking && <AudioWaveIndicator />}
+  </SpeechBubble>
+  
+  {/* Objectives sidebar (collapsible) */}
+  <ObjectivesSidebar>
+    <h4>Objectifs :</h4>
+    {currentScene.objectives.map((obj, i) => (
+      <Objective key={i} completed={objectiveStates[i]}>
+        {objectiveStates[i] ? '✅' : '⬜'} {obj}
+      </Objective>
+    ))}
+  </ObjectivesSidebar>
+  
+  {/* Vocabulary helper (collapsible) */}
+  <VocabularyHelper>
+    <summary>💡 Vocabulaire utile</summary>
+    <WordList>
+      {getSceneVocabulary(currentScene).map(word => (
+        <Word key={word.ar}>
+          <span className="ar">{word.ar}</span> = 
+          <span className="fr">{word.fr}</span>
+        </Word>
+      ))}
+    </WordList>
+  </VocabularyHelper>
+  
+  {/* Chat interface */}
+  <ChatInterface>
+    <MessageHistory>
+      {messages.map(msg => (
+        <MessageBubble 
+          character={msg.character}
+          text={msg.text}
+          avatar={msg.character?.avatar}
+        />
+      ))}
+    </MessageHistory>
+    <ChatInput 
+      placeholder="Réponds en arabe..."
+      dir="rtl"
+    />
+  </ChatInterface>
+</StoryMode>
+```
+
+### Story Completion Screen
+
+```tsx
+<StoryComplete>
+  <Confetti />
+  
+  <Title>🎉 Histoire terminée !</Title>
+  <StoryTitle>{story.titleEn}</StoryTitle>
+  
+  <Stats>
+    <Stat>
+      <Icon>⏱️</Icon>
+      <Label>Durée</Label>
+      <Value>{duration} minutes</Value>
+    </Stat>
+    <Stat>
+      <Icon>✅</Icon>
+      <Label>Objectifs</Label>
+      <Value>{completedObjectives}/{totalObjectives}</Value>
+    </Stat>
+    <Stat>
+      <Icon>💬</Icon>
+      <Label>Personnages</Label>
+      <Value>{metCharacters}/{totalCharacters}</Value>
+    </Stat>
+    <Stat>
+      <Icon>📚</Icon>
+      <Label>Nouveaux mots</Label>
+      <Value>{newWordsLearned}</Value>
+    </Stat>
+    <Stat>
+      <Icon>🎯</Icon>
+      <Label>Score</Label>
+      <Value>{score}/100</Value>
+    </Stat>
+  </Stats>
+  
+  <Achievements>
+    <h3>🏆 Badges débloqués</h3>
+    {unlockedAchievements.map(achievement => (
+      <Achievement key={achievement.id}>
+        <Icon>{achievement.icon}</Icon>
+        <Name>{achievement.name}</Name>
+        <Description>{achievement.description}</Description>
+      </Achievement>
+    ))}
+  </Achievements>
+  
+  <VocabularyReview>
+    <h3>📖 Mots appris pendant l'histoire</h3>
+    <FlashcardDeck words={newWords} />
+    <Button>Réviser ces mots →</Button>
+  </VocabularyReview>
+  
+  <Actions>
+    <Button variant="secondary">Rejouer l'histoire</Button>
+    <Button variant="primary">Nouvelle histoire →</Button>
+    <Button variant="ghost">Retour au tableau de bord</Button>
+  </Actions>
+</StoryComplete>
+```
+
+### Audio Assets Library
+
+```
+/public/audio/
+├── ambient/
+│   ├── traffic-ambient.mp3          (Urban traffic)
+│   ├── souk-crowd-loop.mp3          (Market crowd)
+│   ├── restaurant-ambient.mp3       (Restaurant)
+│   ├── airport-terminal.mp3         (Airport)
+│   ├── street-calm.mp3              (Calm street)
+│   ├── home-quiet.mp3               (Quiet home)
+│   └── evening-souk.mp3             (Evening market)
+│
+├── character/
+│   ├── radio-arabic-low.mp3         (Taxi radio)
+│   ├── spices-pouring.mp3           (Spices)
+│   ├── walkie-talkie-static.mp3     (Police radio)
+│   └── tea-pouring.mp3              (Tea service)
+│
+└── events/
+    ├── car-door-close.mp3
+    ├── car-indicator.mp3
+    ├── meter-beep.mp3
+    ├── jar-open.mp3
+    ├── coins-jingle.mp3
+    ├── merchant-call-distant.mp3
+    ├── camera-click.mp3
+    ├── map-unfold.mp3
+    └── whistle-police.mp3
+```
+
+**Audio Sources (Royalty-Free):**
+- Freesound.org
+- Zapsplat.com
+- BBC Sound Effects (non-commercial OK)
+
+### Character Avatar Assets
+
+```
+/public/avatars/
+├── taxi-driver.svg          (Cap + yellow theme)
+├── spice-vendor.svg         (Turban + orange/brown)
+├── tourist.svg              (Sun hat + backpack)
+├── police-officer.svg       (Police cap + navy)
+├── carpet-seller.svg        (Colorful scarf + red)
+├── waiter.svg               (Bow tie + black/white)
+├── doctor.svg               (White coat)
+└── shopkeeper.svg           (Traditional djellaba)
+```
+
+Each avatar:
+- SVG format (scalable, lightweight)
+- 200x300px viewport
+- Lottie animations for complex gestures
+- CSS variables for color theming
 
 ---
 
 ## 💰 MONETIZATION (STRICT FREEMIUM)
+
+### Updated Free Plan (Aligned with 4-Level System)
+
+```typescript
+const freePlanLimits = {
+  // LEVEL 1: Completely FREE (vocabulary acquisition)
+  level1Access: 'full', // All Level 1 themes unlimited
+  level1Features: {
+    allThemes: true,           // All vocabulary themes
+    flashcards: true,          // Spaced repetition
+    dailyWarmup: true,         // Daily warm-up ritual
+    progressTracking: true,    // Basic stats
+  },
+  
+  // LEVEL 2: Limited (comprehension teaser)
+  level2Access: 'limited',
+  level2Limits: {
+    sessionsPerMonth: 3,       // 3 comprehension sessions/month
+    themesAccess: ['airport', 'restaurant'], // Only 2 themes
+  },
+  
+  // LEVEL 3 & 4: Blocked
+  level3Access: false,         // Conversation - Premium only
+  level4Access: false,         // Immersion - Premium only
+  
+  // Features
+  voiceMode: false,            // Text only, no STT/TTS
+  languageAccess: 'msa',       // MSA only, no Darija
+  saveHistory: 7,              // days, then deleted
+  exportVocabulary: false,
+  offlineMode: false,
+  stories: false,              // No multi-character stories
+  
+  // UI
+  watermark: 'Plan Gratuit',   // Persistent badge
+  
+  // Costs
+  estimatedCostPerUser: 0.15,  // $/month (optimized for Level 1)
+};
+
+// CRITICAL: Level 1 is completely free to ensure everyone can start
+// This builds vocabulary base (300-500 words) before any paywall
+```
+
+### Premium Plan (9.99€/month)
+
+```typescript
+const premiumFeatures = {
+  // Full access to all levels
+  level1Access: 'full',
+  level2Access: 'full',
+  level3Access: 'full',
+  level4Access: 'full',
+  
+  // All features
+  conversationsPerMonth: Infinity,
+  allThemes: true,
+  languageAccess: ['msa', 'darija'], // Both
+  voiceMode: true,                   // Full STT/TTS
+  correctionsType: 'real_time',
+  saveHistory: Infinity,
+  exportVocabulary: true,            // PDF/Anki
+  offlineMode: true,                 // PWA cache
+  advancedStats: true,
+  stories: true,                     // Multi-character stories
+  prioritySupport: true,
+  watermark: false,
+  
+  // Costs
+  estimatedCostPerUser: 1.20,        // $/month (all features)
+  pricing: 9.99,                     // €/month
+};
+```
+
+### Student Plan (4.99€/month)
+
+```typescript
+const studentPlan = {
+  ...premiumFeatures,
+  requiresVerification: true,        // Student ID/email
+  pricing: 4.99,                     // €/month
+};
+```
+
+### Annual Plan (79€/year)
+
+```typescript
+const annualPlan = {
+  ...premiumFeatures,
+  discount: '20%',                   // = 6.58€/month effective
+  billingCycle: 'yearly',
+  pricing: 79,                       // €/year
+};
+```
+
+### Conversion Funnel Strategy
+
+```
+User Journey:
+1. Sign up → Start Level 1 (FREE, unlimited)
+2. Complete 300 words → Level 2 unlocked (3 sessions free teaser)
+3. After 3 Level 2 sessions → Paywall modal
+   "🎉 Tu progresses bien ! Débloque Level 3 pour pratiquer la conversation"
+4. Subscribe → Full access Levels 3 & 4
+
+Conversion triggers:
+- After completing 3 Level 2 sessions (teaser exhausted)
+- When user tries to access Level 3 (conversation)
+- When user tries to enable voice mode
+- When user tries to access Darija
+- When user tries to play interactive story
+```
+
+### Free-to-Premium Value Proposition
+
+```tsx
+<PaywallModal>
+  <h2>🚀 Prêt pour le niveau supérieur ?</h2>
+  
+  <Progress>
+    <Stat>✅ 247 mots maîtrisés</Stat>
+    <Stat>✅ 68% compréhension</Stat>
+    <Stat>✅ 7 jours de streak</Stat>
+  </Progress>
+  
+  <UpgradePrompt>
+    Débloque <strong>Level 3 : Conversation Assistée</strong>
+  </UpgradePrompt>
+  
+  <Features>
+    <Feature>✅ Conversations illimitées</Feature>
+    <Feature>✅ Mode vocal complet</Feature>
+    <Feature>✅ Darija marocaine</Feature>
+    <Feature>✅ Histoires interactives</Feature>
+    <Feature>✅ Tous les scénarios</Feature>
+  </Features>
+  
+  <Pricing>
+    <Plan selected>
+      <n>Premium</n>
+      <Price>9.99€<small>/mois</small></Price>
+      <CTA>Essai gratuit 7 jours →</CTA>
+    </Plan>
+    
+    <Plan>
+      <n>Annuel</n>
+      <Price>79€<small>/an</small></Price>
+      <Savings>Économise 20%</Savings>
+    </Plan>
+  </Pricing>
+  
+  <Guarantee>
+    💳 Annulation facile à tout moment
+  </Guarantee>
+</PaywallModal>
+```
+
+---
 
 ### Free Plan (Intentionally Frustrating)
 ```typescript
