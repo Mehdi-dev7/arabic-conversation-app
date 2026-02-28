@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { MessageBubble } from './MessageBubble';
 import { CorrectionPopup } from './CorrectionPopup';
 import { VoiceRecorder } from '../voice/VoiceRecorder';
@@ -31,6 +32,7 @@ export function ChatInterface({
   language,
   initialMessage 
 }: ChatInterfaceProps) {
+  const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -44,6 +46,8 @@ export function ChatInterface({
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [conversationStartTime] = useState(Date.now());
+  const [conversationSaved, setConversationSaved] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -62,6 +66,73 @@ export function ChatInterface({
       hasAudio: true,
     }]);
   }, [initialMessage, language]);
+
+  // Sauvegarder la conversation quand l'utilisateur quitte ou après 5 messages
+  useEffect(() => {
+    if (!session?.user || conversationSaved) return;
+
+    const messageCount = messages.filter(m => m.role === 'user').length;
+
+    // Sauvegarder après 5 messages utilisateur
+    if (messageCount >= 5 && messageCount % 5 === 0) {
+      saveConversation();
+    }
+
+    // Sauvegarder avant de quitter la page
+    const handleBeforeUnload = () => {
+      if (messages.length > 1) {
+        saveConversation();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (messages.length > 1 && !conversationSaved) {
+        saveConversation();
+      }
+    };
+  }, [messages, session, conversationSaved]);
+
+  const saveConversation = async () => {
+    if (!session?.user || messages.length <= 1 || conversationSaved) return;
+
+    const duration = Math.floor((Date.now() - conversationStartTime) / 1000);
+
+    try {
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scenarioId,
+          language,
+          level: userLevel,
+          messages: messages.map(m => ({
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp,
+          })),
+          duration,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setConversationSaved(true);
+        console.log('Conversation sauvegardée', data);
+      } else if (response.status === 403) {
+        const data = await response.json();
+        if (data.error === 'LIMIT_REACHED') {
+          alert('⚠️ Limite atteinte\n\nVous avez atteint votre limite mensuelle de conversations gratuites. Passez à Premium pour continuer !');
+        }
+      }
+    } catch (error) {
+      console.error('Erreur sauvegarde conversation:', error);
+    }
+  };
 
   const processMessage = async (messageContent: string) => {
     const userMessage: Message = {
