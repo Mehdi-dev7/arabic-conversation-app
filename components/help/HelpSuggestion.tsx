@@ -42,11 +42,71 @@ export function HelpSuggestion({
       { ar: 'أريد برتقال', fr: 'Je veux des oranges' },
     ];
 
+    const restaurantSuggestions = [
+      { ar: 'أريد طاجين من فضلك', fr: 'Je voudrais un tajine s\'il vous plaît' },
+      { ar: 'ما المكونات؟', fr: 'Quels sont les ingrédients?' },
+      { ar: 'لذيذ جداً!', fr: 'Très délicieux!' },
+      { ar: 'الحساب من فضلك', fr: 'L\'addition s\'il vous plaît' },
+      { ar: 'هل الطعام حار؟', fr: 'Est-ce que c\'est épicé?' },
+    ];
+
+    const airportSuggestions = [
+      { ar: 'أريد تسجيل الدخول', fr: 'Je veux m\'enregistrer' },
+      { ar: 'أين البوابة؟', fr: 'Où est la porte?' },
+      { ar: 'حقيبة واحدة', fr: 'Une valise' },
+      { ar: 'متى موعد الإقلاع؟', fr: 'À quelle heure est le départ?' },
+      { ar: 'هذا جواز سفري', fr: 'Voici mon passeport' },
+    ];
+
+    const homeSuggestions = [
+      { ar: 'بيتكم جميل', fr: 'Votre maison est belle' },
+      { ar: 'كم عدد أفراد عائلتك؟', fr: 'Combien êtes-vous dans la famille?' },
+      { ar: 'عندي أخ وأخت', fr: 'J\'ai un frère et une sœur' },
+      { ar: 'شكراً على الاستقبال', fr: 'Merci pour l\'accueil' },
+      { ar: 'أريد شاياً من فضلك', fr: 'Je voudrais du thé s\'il vous plaît' },
+    ];
+
+    const grocerySuggestions = [
+      { ar: 'عندك خبز؟', fr: 'As-tu du pain?' },
+      { ar: 'أريد كيلو أرز', fr: 'Je veux un kilo de riz' },
+      { ar: 'كم الثمن؟', fr: 'Combien?' },
+      { ar: 'معك كيس؟', fr: 'As-tu un sac?' },
+      { ar: 'أريد حليب', fr: 'Je veux du lait' },
+    ];
+
+    const taxiSuggestions = [
+      { ar: 'إلى المطار من فضلك', fr: 'À l\'aéroport s\'il vous plaît' },
+      { ar: 'بكم الأجرة؟', fr: 'Combien coûte la course?' },
+      { ar: 'على اليمين', fr: 'À droite' },
+      { ar: 'هل هو بعيد؟', fr: 'Est-ce loin?' },
+      { ar: 'توقف هنا من فضلك', fr: 'Arrêtez-vous ici s\'il vous plaît' },
+    ];
+
+    const doctorSuggestions = [
+      { ar: 'أنا مريض', fr: 'Je suis malade' },
+      { ar: 'عندي صداع', fr: 'J\'ai mal à la tête' },
+      { ar: 'ما الدواء؟', fr: 'Quel est le médicament?' },
+      { ar: 'منذ يومين', fr: 'Depuis deux jours' },
+      { ar: 'عندي حمى', fr: 'J\'ai de la fièvre' },
+    ];
+
     switch (scenario.id) {
       case 'cafe':
         return cafeSuggestions;
       case 'market':
         return marketSuggestions;
+      case 'restaurant':
+        return restaurantSuggestions;
+      case 'airport':
+        return airportSuggestions;
+      case 'home':
+        return homeSuggestions;
+      case 'grocery':
+        return grocerySuggestions;
+      case 'taxi':
+        return taxiSuggestions;
+      case 'doctor':
+        return doctorSuggestions;
       default:
         return baseIntro;
     }

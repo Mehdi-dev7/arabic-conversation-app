@@ -40,6 +40,30 @@ export function ScenarioBackground({ scenario }: ScenarioBackgroundProps) {
           pattern: 'airport',
           overlay: 'bg-gradient-to-br from-blue-900/20 to-sky-700/30',
         };
+      case 'home':
+        return {
+          gradient: 'from-[#556B2F] via-[#6B8E23] to-[#8FBC8F]',
+          pattern: 'home',
+          overlay: 'bg-gradient-to-br from-green-900/20 to-emerald-800/30',
+        };
+      case 'grocery':
+        return {
+          gradient: 'from-[#8B7355] via-[#A0826D] to-[#C19A6B]',
+          pattern: 'grocery',
+          overlay: 'bg-gradient-to-br from-amber-900/20 to-yellow-800/30',
+        };
+      case 'taxi':
+        return {
+          gradient: 'from-[#E74C3C] via-[#C0392B] to-[#922B21]',
+          pattern: 'taxi',
+          overlay: 'bg-gradient-to-br from-red-900/30 to-orange-900/20',
+        };
+      case 'doctor':
+        return {
+          gradient: 'from-[#2ECC71] via-[#27AE60] to-[#1E8449]',
+          pattern: 'doctor',
+          overlay: 'bg-gradient-to-br from-green-900/20 to-teal-800/30',
+        };
       default:
         return {
           gradient: 'from-primary-night via-neutral-warm-gray to-primary-night',
@@ -64,6 +88,10 @@ export function ScenarioBackground({ scenario }: ScenarioBackgroundProps) {
       {style.pattern === 'market' && <MarketPattern />}
       {style.pattern === 'restaurant' && <RestaurantPattern />}
       {style.pattern === 'airport' && <AirportPattern />}
+      {style.pattern === 'home' && <HomePattern />}
+      {style.pattern === 'grocery' && <GroceryPattern />}
+      {style.pattern === 'taxi' && <TaxiPattern />}
+      {style.pattern === 'doctor' && <DoctorPattern />}
 
       {/* Particules flottantes */}
       <FloatingParticles color={scenario.avatarColor} />
@@ -209,6 +237,113 @@ function FloatingParticles({ color }: { color: string }) {
             delay: Math.random() * 2,
           }}
         />
+      ))}
+    </div>
+  );
+}
+
+// Motifs pour la maison
+function HomePattern() {
+  return (
+    <div className="absolute inset-0 opacity-10">
+      {/* Motifs de coussins et tapis */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-24 h-16 bg-gradient-to-br from-green-400 to-emerald-400 rounded-lg"
+          style={{
+            left: `${(i % 3) * 33}%`,
+            top: `${Math.floor(i / 3) * 50}%`,
+            opacity: 0.15,
+          }}
+          animate={{
+            scale: [1, 1.05, 1],
+            opacity: [0.1, 0.2, 0.1],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            delay: i * 0.5,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Motifs pour l'épicerie
+function GroceryPattern() {
+  return (
+    <div className="absolute inset-0 opacity-10">
+      {/* Étagères */}
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-full h-2 bg-brown-400"
+          style={{
+            top: `${i * 20}%`,
+          }}
+          animate={{
+            opacity: [0.15, 0.25, 0.15],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            delay: i * 0.3,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Motifs pour le taxi
+function TaxiPattern() {
+  return (
+    <div className="absolute inset-0 opacity-10">
+      {/* Lignes de route qui défilent */}
+      {[...Array(8)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-20 h-1 bg-white"
+          style={{
+            left: `${i * 15}%`,
+            top: '50%',
+          }}
+          animate={{
+            x: [-100, 100],
+            opacity: [0, 0.3, 0],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            delay: i * 0.25,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Motifs pour le docteur
+function DoctorPattern() {
+  return (
+    <div className="absolute inset-0 opacity-10">
+      {/* Croix médicales */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute"
+          style={{
+            left: `${(i % 3) * 33 + 15}%`,
+            top: `${Math.floor(i / 3) * 50 + 20}%`,
+          }}
+        >
+          <div className="relative w-8 h-8">
+            <div className="absolute w-2 h-8 bg-green-300 left-3" />
+            <div className="absolute w-8 h-2 bg-green-300 top-3" />
+          </div>
+        </motion.div>
       ))}
     </div>
   );
