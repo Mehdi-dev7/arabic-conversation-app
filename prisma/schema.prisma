@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  plan              String   @default("free")
+  currentLevel      String   @default("vocabulary_acquisition")
+  preferredLanguage String   @default("msa")
+  streakDays        Int      @default(0)
+  lastActiveDate    DateTime?
+
+  accounts           Account[]
+  sessions           Session[]
+  conversations      Conversation[]
+  vocabulary         Vocabulary[]
+  progress           Progress?
+  corrections        Correction[]
+  rateLimits         RateLimit?
+  authenticators     Authenticator[]
+
+  @@map("users")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+  @@map("authenticators")
+}
+
+model Conversation {
+  id         String   @id @default(cuid())
+  userId     String
+  scenarioId String
+  language   String
+  level      String
+  messages   Json[]
+  duration   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  corrections Correction[]
+
+  @@index([userId])
+  @@map("conversations")
+}
+
+model Vocabulary {
+  id            String    @id @default(cuid())
+  userId        String
+  word          String
+  translation   String
+  context       String?
+  scenarioId    String?
+  masteryLevel  Int       @default(0)
+  learnedAt     DateTime  @default(now())
+  lastReviewed  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("vocabulary")
+}
+
+model Progress {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  scenariosCompleted  String[]
+  totalConversations  Int      @default(0)
+  totalHours          Float    @default(0)
+  wordsLearned        Int      @default(0)
+  commonErrors        Json?
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("progress")
+}
+
+model Correction {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  userInput      String
+  correction     String
+  explanation    String
+  errorType      String
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([userId])
+  @@map("corrections")
+}
+
+model RateLimit {
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  conversationsThisMonth Int       @default(0)
+  lastReset              DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("rate_limits")
+}

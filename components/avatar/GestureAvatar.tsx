@@ -226,7 +226,7 @@ export function GestureAvatar({
               strokeLinecap="round"
               fill="none"
               opacity="0.9"
-              filter="url(#glow)"}
+              filter="url(#glow)"
             />
             {/* Main droite */}
             <circle
