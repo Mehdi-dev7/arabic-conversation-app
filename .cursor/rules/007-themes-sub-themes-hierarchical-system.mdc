@@ -1,0 +1,547 @@
+---
+description: 📚 THEMES & SUB-THEMES (Hierarchical System)
+alwaysApply: false
+---
+## 📚 THEMES & SUB-THEMES (Hierarchical System)
+
+
+### Theme Structure
+
+```typescript
+interface Theme {
+  id: string;
+  name: string;          // Arabic name
+  nameEn: string;        // English/French name
+  icon: string;          // Emoji
+  level: 1 | 2 | 3 | 4;  // Required level
+  subthemes: SubTheme[];
+  progress: number;      // 0-100%
+  freeAccess: boolean;
+}
+
+interface SubTheme {
+  id: string;
+  name: string;
+  nameEn: string;
+  vocabulary: Word[];
+  scenarios?: Scenario[];
+  subthemes?: SubTheme[]; // Nested sub-themes possible!
+  completed: boolean;
+}
+
+interface Word {
+  ar: string;
+  fr: string;
+  pronunciation?: string;
+  example?: string;
+}
+```
+
+### Level 1 Themes (Vocabulary Acquisition)
+
+```typescript
+const level1Themes: Theme[] = [
+  {
+    id: 'greetings',
+    name: 'التحيات',
+    nameEn: 'Greetings & Introductions',
+    icon: '👋',
+    level: 1,
+    freeAccess: true, // FREE - everyone starts here
+    vocabulary: [
+      { ar: 'مرحباً', fr: 'Bonjour', pronunciation: 'Marhaban' },
+      { ar: 'السلام عليكم', fr: 'Paix sur vous', pronunciation: 'As-salamu alaykum' },
+      { ar: 'كيف حالك؟', fr: 'Comment vas-tu ?', pronunciation: 'Kayfa haluk?' },
+      { ar: 'شكراً', fr: 'Merci', pronunciation: 'Shukran' },
+      { ar: 'من فضلك', fr: 'S\'il te plaît', pronunciation: 'Min fadlak' },
+      { ar: 'ما اسمك؟', fr: 'Quel est ton nom ?', pronunciation: 'Ma ismuk?' },
+      { ar: 'أنا اسمي...', fr: 'Je m\'appelle...', pronunciation: 'Ana ismi...' },
+      // ... 15 total words
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'house',
+    name: 'البيت',
+    nameEn: 'The House',
+    icon: '🏠',
+    level: 1,
+    freeAccess: true,
+    subthemes: [
+      {
+        id: 'bedroom',
+        name: 'غرفة النوم',
+        nameEn: 'Bedroom',
+        vocabulary: [
+          { ar: 'سرير', fr: 'Lit' },
+          { ar: 'وسادة', fr: 'Oreiller' },
+          { ar: 'خزانة', fr: 'Armoire' },
+          { ar: 'نافذة', fr: 'Fenêtre' },
+          { ar: 'باب', fr: 'Porte' },
+          // ... 20 words
+        ],
+        completed: false,
+      },
+      {
+        id: 'kitchen',
+        name: 'المطبخ',
+        nameEn: 'Kitchen',
+        subthemes: [ // NESTED sub-themes!
+          {
+            id: 'utensils',
+            name: 'أدوات المطبخ',
+            nameEn: 'Kitchen Utensils',
+            vocabulary: [
+              { ar: 'سكين', fr: 'Couteau' },
+              { ar: 'ملعقة', fr: 'Cuillère' },
+              { ar: 'شوكة', fr: 'Fourchette' },
+              { ar: 'طنجرة', fr: 'Casserole' },
+              { ar: 'كأس', fr: 'Verre' },
+              // ... 15 words
+            ],
+            completed: false,
+          },
+          {
+            id: 'appliances',
+            name: 'الأجهزة',
+            nameEn: 'Appliances',
+            vocabulary: [
+              { ar: 'ثلاجة', fr: 'Réfrigérateur' },
+              { ar: 'فرن', fr: 'Four' },
+              { ar: 'ميكرويف', fr: 'Micro-ondes' },
+              { ar: 'غسالة', fr: 'Lave-linge' },
+              // ... 15 words
+            ],
+            completed: false,
+          },
+        ],
+        scenarios: [
+          'Préparer un repas',
+          'Faire la vaisselle',
+          'Expliquer une recette',
+        ],
+        completed: false,
+      },
+      {
+        id: 'bathroom',
+        name: 'الحمام',
+        nameEn: 'Bathroom',
+        vocabulary: [
+          { ar: 'صابون', fr: 'Savon' },
+          { ar: 'فرشاة الأسنان', fr: 'Brosse à dents' },
+          { ar: 'معجون الأسنان', fr: 'Dentifrice' },
+          { ar: 'منشفة', fr: 'Serviette' },
+          { ar: 'مرآة', fr: 'Miroir' },
+          // ... 15 words
+        ],
+        completed: false,
+      },
+      {
+        id: 'living_room',
+        name: 'غرفة الجلوس',
+        nameEn: 'Living Room',
+        vocabulary: [
+          { ar: 'أريكة', fr: 'Canapé' },
+          { ar: 'تلفاز', fr: 'Télévision' },
+          { ar: 'طاولة', fr: 'Table' },
+          { ar: 'كرسي', fr: 'Chaise' },
+          // ... 15 words
+        ],
+        completed: false,
+      },
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'food',
+    name: 'الطعام',
+    nameEn: 'Food & Drinks',
+    icon: '🍽️',
+    level: 1,
+    freeAccess: true,
+    subthemes: [
+      {
+        id: 'fruits',
+        name: 'الفواكه',
+        nameEn: 'Fruits',
+        vocabulary: [
+          { ar: 'تفاح', fr: 'Pomme' },
+          { ar: 'موز', fr: 'Banane' },
+          { ar: 'برتقال', fr: 'Orange' },
+          { ar: 'عنب', fr: 'Raisin' },
+          // ... 20 words
+        ],
+        completed: false,
+      },
+      {
+        id: 'vegetables',
+        name: 'الخضروات',
+        nameEn: 'Vegetables',
+        vocabulary: [
+          { ar: 'طماطم', fr: 'Tomate' },
+          { ar: 'بطاطس', fr: 'Pomme de terre' },
+          { ar: 'جزر', fr: 'Carotte' },
+          { ar: 'خيار', fr: 'Concombre' },
+          // ... 20 words
+        ],
+        completed: false,
+      },
+      {
+        id: 'drinks',
+        name: 'المشروبات',
+        nameEn: 'Drinks',
+        vocabulary: [
+          { ar: 'ماء', fr: 'Eau' },
+          { ar: 'قهوة', fr: 'Café' },
+          { ar: 'شاي', fr: 'Thé' },
+          { ar: 'عصير', fr: 'Jus' },
+          // ... 15 words
+        ],
+        completed: false,
+      },
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'numbers',
+    name: 'الأرقام',
+    nameEn: 'Numbers',
+    icon: '🔢',
+    level: 1,
+    freeAccess: true,
+    vocabulary: [
+      { ar: 'واحد', fr: '1 - Un' },
+      { ar: 'اثنان', fr: '2 - Deux' },
+      { ar: 'ثلاثة', fr: '3 - Trois' },
+      // ... up to 100
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'family',
+    name: 'العائلة',
+    nameEn: 'Family',
+    icon: '👨‍👩‍👧‍👦',
+    level: 1,
+    freeAccess: true,
+    vocabulary: [
+      { ar: 'أب', fr: 'Père' },
+      { ar: 'أم', fr: 'Mère' },
+      { ar: 'أخ', fr: 'Frère' },
+      { ar: 'أخت', fr: 'Sœur' },
+      { ar: 'جد', fr: 'Grand-père' },
+      { ar: 'جدة', fr: 'Grand-mère' },
+      // ... 20 words
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'colors',
+    name: 'الألوان',
+    nameEn: 'Colors',
+    icon: '🎨',
+    level: 1,
+    freeAccess: true,
+    vocabulary: [
+      { ar: 'أحمر', fr: 'Rouge' },
+      { ar: 'أزرق', fr: 'Bleu' },
+      { ar: 'أخضر', fr: 'Vert' },
+      { ar: 'أصفر', fr: 'Jaune' },
+      { ar: 'أبيض', fr: 'Blanc' },
+      { ar: 'أسود', fr: 'Noir' },
+      // ... 15 words
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'body',
+    name: 'الجسم',
+    nameEn: 'Body Parts',
+    icon: '🫱',
+    level: 1,
+    freeAccess: true,
+    vocabulary: [
+      { ar: 'رأس', fr: 'Tête' },
+      { ar: 'عين', fr: 'Œil' },
+      { ar: 'أذن', fr: 'Oreille' },
+      { ar: 'يد', fr: 'Main' },
+      { ar: 'قدم', fr: 'Pied' },
+      // ... 20 words
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'weather',
+    name: 'الطقس',
+    nameEn: 'Weather',
+    icon: '🌤️',
+    level: 1,
+    freeAccess: true,
+    vocabulary: [
+      { ar: 'شمس', fr: 'Soleil' },
+      { ar: 'مطر', fr: 'Pluie' },
+      { ar: 'رياح', fr: 'Vent' },
+      { ar: 'حار', fr: 'Chaud' },
+      { ar: 'بارد', fr: 'Froid' },
+      // ... 15 words
+    ],
+    progress: 0,
+  },
+  
+  // Total Level 1: ~300 words
+];
+```
+
+### Level 2 Themes (Comprehension)
+
+```typescript
+const level2Themes: Theme[] = [
+  {
+    id: 'airport',
+    name: 'المطار',
+    nameEn: 'Airport',
+    icon: '✈️',
+    level: 2,
+    freeAccess: false, // Premium
+    subthemes: [
+      {
+        id: 'check_in',
+        name: 'تسجيل الوصول',
+        nameEn: 'Check-in',
+        vocabulary: [
+          { ar: 'بطاقة صعود', fr: 'Carte d\'embarquement' },
+          { ar: 'حقيبة', fr: 'Valise' },
+          { ar: 'وزن زائد', fr: 'Excédent de bagages' },
+          // ... 20 words
+        ],
+        scenarios: [
+          'Enregistrement au comptoir',
+          'Gérer excédent bagages',
+        ],
+        completed: false,
+      },
+      {
+        id: 'customs',
+        name: 'الجمارك',
+        nameEn: 'Customs',
+        vocabulary: [
+          { ar: 'جواز سفر', fr: 'Passeport' },
+          { ar: 'تأشيرة', fr: 'Visa' },
+          { ar: 'تصريح', fr: 'Déclaration' },
+          // ... 15 words
+        ],
+        scenarios: [
+          'Passage douane',
+          'Répondre questions douanier',
+        ],
+        completed: false,
+      },
+      {
+        id: 'lost_luggage',
+        name: 'الأمتعة المفقودة',
+        nameEn: 'Lost Luggage',
+        vocabulary: [
+          { ar: 'مفقود', fr: 'Perdu' },
+          { ar: 'إعلان', fr: 'Déclaration' },
+          { ar: 'وصف', fr: 'Description' },
+          // ... 15 words
+        ],
+        scenarios: [
+          'Déclarer perte valise',
+          'Décrire bagages',
+        ],
+        completed: false,
+      },
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'restaurant',
+    name: 'المطعم',
+    nameEn: 'Restaurant',
+    icon: '🍽️',
+    level: 2,
+    freeAccess: false,
+    subthemes: [
+      {
+        id: 'ordering',
+        name: 'الطلب',
+        nameEn: 'Ordering',
+        vocabulary: [
+          { ar: 'قائمة', fr: 'Menu' },
+          { ar: 'طبق', fr: 'Plat' },
+          { ar: 'مشروب', fr: 'Boisson' },
+          // ... 25 words
+        ],
+        scenarios: ['Commander un repas'],
+        completed: false,
+      },
+      {
+        id: 'bill',
+        name: 'الحساب',
+        nameEn: 'Bill/Check',
+        vocabulary: [
+          { ar: 'فاتورة', fr: 'Addition' },
+          { ar: 'بقشيش', fr: 'Pourboire' },
+          // ... 10 words
+        ],
+        scenarios: ['Demander et payer l\'addition'],
+        completed: false,
+      },
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'doctor',
+    name: 'الطبيب',
+    nameEn: 'Doctor Visit',
+    icon: '🏥',
+    level: 2,
+    freeAccess: false,
+    vocabulary: [
+      { ar: 'ألم', fr: 'Douleur' },
+      { ar: 'حمى', fr: 'Fièvre' },
+      { ar: 'دواء', fr: 'Médicament' },
+      // ... 30 words
+    ],
+    scenarios: [
+      'Décrire symptômes',
+      'Comprendre ordonnance',
+    ],
+    progress: 0,
+  },
+  
+  // Add more Level 2 themes...
+  // Total Level 2: +300 words (cumulative: 600)
+];
+```
+
+### Level 3/4 Themes (Conversation & Immersion)
+
+```typescript
+const level3_4Themes: Theme[] = [
+  {
+    id: 'business',
+    name: 'الأعمال',
+    nameEn: 'Business',
+    icon: '💼',
+    level: 3,
+    freeAccess: false,
+    scenarios: [
+      'Réunion professionnelle',
+      'Négociation commerciale',
+      'Présentation projet',
+    ],
+    progress: 0,
+  },
+  
+  {
+    id: 'debate',
+    name: 'النقاش',
+    nameEn: 'Debate & Discussion',
+    icon: '🗣️',
+    level: 4,
+    freeAccess: false,
+    scenarios: [
+      'Débat politique',
+      'Discussion philosophique',
+      'Analyse littéraire',
+    ],
+    progress: 0,
+  },
+  
+  // ... more advanced themes
+];
+```
+
+### Theme Dashboard UI
+
+```tsx
+<ThemeDashboard>
+  {/* Warm-up status */}
+  <WarmupStatus completed={user.warmupToday}>
+    {user.warmupToday ? (
+      <span>✅ Warm-up du jour complété (+5 XP)</span>
+    ) : (
+      <button onClick={startWarmup}>Commencer warm-up quotidien →</button>
+    )}
+  </WarmupStatus>
+  
+  {/* Level progress */}
+  <LevelProgressBar>
+    <Step completed={user.currentLevel >= 1}>
+      Niveau 1: Vocabulaire {user.currentLevel === 1 && '🔄'}
+    </Step>
+    <Step completed={user.currentLevel >= 2}>
+      Niveau 2: Compréhension {user.currentLevel === 2 && '🔄'}
+    </Step>
+    <Step locked={user.currentLevel < 3}>
+      Niveau 3: Conversation {user.currentLevel === 3 && '🔄'} {user.currentLevel < 3 && '🔒'}
+    </Step>
+    <Step locked={user.currentLevel < 4}>
+      Niveau 4: Immersion {user.currentLevel === 4 && '🔄'} {user.currentLevel < 4 && '🔒'}
+    </Step>
+  </LevelProgressBar>
+  
+  {/* Suggested theme */}
+  <SuggestedTheme>
+    <h3>📚 Suggestion du jour</h3>
+    <ThemeCard theme={getNextTheme(user)}>
+      {theme.icon} {theme.nameEn}
+      <ProgressBar value={theme.progress} />
+      <button>Continuer →</button>
+    </ThemeCard>
+  </SuggestedTheme>
+  
+  {/* All themes grid */}
+  <ThemeGrid>
+    {themes
+      .filter(t => t.level <= user.currentLevel)
+      .map(theme => (
+        <ThemeCard 
+          key={theme.id}
+          locked={!theme.freeAccess && user.plan === 'free'}
+        >
+          <Icon>{theme.icon}</Icon>
+          <Name>{theme.nameEn}</Name>
+          <Progress>{theme.progress}%</Progress>
+          
+          {/* Expandable sub-themes */}
+          <Collapsible>
+            {theme.subthemes?.map(sub => (
+              <SubThemeItem completed={sub.completed}>
+                {sub.completed ? '✅' : '◻️'} {sub.nameEn}
+                
+                {/* Nested sub-themes */}
+                {sub.subthemes && (
+                  <NestedList>
+                    {sub.subthemes.map(nested => (
+                      <li>{nested.nameEn}</li>
+                    ))}
+                  </NestedList>
+                )}
+              </SubThemeItem>
+            ))}
+          </Collapsible>
+          
+          <ActionButton>
+            {theme.freeAccess || user.plan === 'premium' ? (
+              <span>Choisir →</span>
+            ) : (
+              <span>🔒 Premium</span>
+            )}
+          </ActionButton>
+        </ThemeCard>
+      ))}
+  </ThemeGrid>
+</ThemeDashboard>
+```

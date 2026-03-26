@@ -1,0 +1,27 @@
+---
+description: 🎯 SUCCESS METRICS
+alwaysApply: false
+---
+## 🎯 SUCCESS METRICS
+
+
+### Technical KPIs
+- Page load < 2s (Lighthouse score > 90)
+- API response time < 1s
+- PWA installable on mobile/desktop
+- Zero errors in Sentry (error tracking)
+
+### Business KPIs (3 months post-launch)
+- 1000 signups (free + premium)
+- 15% free → premium conversion
+- 50 active premium subscribers (= 500€ MRR)
+- < 5% monthly churn
+- Average 3 conversations/user/week
+
+### User Experience KPIs
+- 80% complete onboarding
+- Average session duration > 8 minutes
+- 60% return within 7 days
+- NPS score > 40
+
+---

@@ -1,0 +1,32 @@
+---
+description: 🔄 ITERATION PRIORITIES
+alwaysApply: false
+---
+## 🔄 ITERATION PRIORITIES
+
+
+### After MVP Launch (Week 1-2)
+1. Fix critical bugs from beta
+2. Add 2-3 more beginner scenarios
+3. Improve correction explanations (user feedback)
+4. Add pronunciation tips (text-based, not audio yet)
+
+### Month 2
+1. Implement voice mode (STT/TTS)
+2. Add all intermediate scenarios
+3. Build spaced repetition system
+4. Stripe integration + premium features
+
+### Month 3
+1. Advanced scenarios
+2. Gamification (streaks, badges)
+3. Referral program (get 1 month free)
+4. Marketing push (Reddit, Facebook groups)
+
+### Month 4-6
+1. **Stores** : builds EAS (iOS/Android), soumission App Store / Play Store, notifications push si besoin
+2. Web version optimization (landing, SEO)
+3. B2B partnerships (language schools)
+4. Content expansion (cultural lessons)
+
+---

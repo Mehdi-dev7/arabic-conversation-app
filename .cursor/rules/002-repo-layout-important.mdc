@@ -1,0 +1,13 @@
+---
+description: 📁 REPO LAYOUT (IMPORTANT)
+alwaysApply: true
+---
+## 📁 REPO LAYOUT (IMPORTANT)
+
+
+- **`/` (racine)** — Next.js : `app/`, `components/`, `lib/`, routes **`/api/*`** (chat, auth, Stripe, speech, etc.)
+- **`/mobile`** — Expo (SDK 55+) : `app/` (expo-router), `src/components/`, `src/api/`, copie métier dans **`mobile/src/lib/`** (`constants`, `prompts`, `scenarios`)
+- **Config API mobile** : variable d’environnement **`EXPO_PUBLIC_API_URL`** (URL du serveur Next.js, ex. `http://IP:3000` sur appareil physique). Voir `mobile/.env.example`.
+- **Synchronisation** : toute évolution de `lib/constants.ts`, `lib/prompts.ts`, `lib/scenarios.ts` doit être **reproduite ou partagée** avec `mobile/src/lib/` (idéal futur : package `packages/shared`).
+
+---

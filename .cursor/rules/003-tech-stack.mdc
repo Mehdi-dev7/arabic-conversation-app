@@ -1,0 +1,40 @@
+---
+description: 🛠️ TECH STACK
+alwaysApply: true
+---
+## 🛠️ TECH STACK
+
+
+### Mobile (priorité produit)
+- **Runtime:** React Native (Expo)
+- **Navigation:** expo-router (file-based)
+- **Language:** TypeScript (strict mode)
+- **UI:** React Native `StyleSheet`, pas de Tailwind sur mobile (sauf si vous ajoutez NativeWind explicitement)
+- **Animations avatar / UI:** `react-native-reanimated` + `react-native-svg` (ne pas utiliser Framer Motion dans `mobile/`)
+- **Icônes:** `@expo/vector-icons` ou SVG selon besoin
+- **Audio (futur):** `expo-av` / APIs alignées sur les routes existantes (Whisper, TTS)
+
+### Web (Next.js — API + pages optionnelles)
+- **Framework:** Next.js (App Router)
+- **Styling:** Tailwind CSS
+- **UI Components:** Shadcn/ui (web uniquement)
+- **Animations (web):** Framer Motion
+- **Audio (web):** Howler.js
+- **Icons:** Lucide React
+- **PWA (optionnel):** next-pwa, manifest, service worker
+
+### Backend (inchangé — côté Next.js)
+- **API Routes:** Next.js API Routes (`/api/chat`, etc.) consommées par l’app mobile via `EXPO_PUBLIC_API_URL`
+- **AI Conversation:** Claude API (Anthropic) - claude-sonnet-4-20250514
+- **Speech-to-Text:** Whisper API (OpenAI) - PREMIUM ONLY
+- **Text-to-Speech:** Google Cloud TTS (Arabic voices) - PREMIUM ONLY
+- **Database:** Prisma + PostgreSQL (schéma projet / Supabase selon déploiement)
+- **Auth:** NextAuth / flux existant (à connecter au mobile via tokens ou Expo Auth Session)
+- **Payments:** Stripe (subscriptions)
+
+### PWA Configuration (web uniquement)
+- **Package:** next-pwa
+- **Service Worker:** Cache conversations for offline mode (premium only)
+- **Manifest:** App installable on mobile/desktop
+
+---

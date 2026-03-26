@@ -1,0 +1,230 @@
+---
+description: 💰 MONETIZATION (STRICT FREEMIUM)
+alwaysApply: false
+---
+## 💰 MONETIZATION (STRICT FREEMIUM)
+
+
+### Updated Free Plan (Aligned with 4-Level System)
+
+```typescript
+const freePlanLimits = {
+  // LEVEL 1: Completely FREE (vocabulary acquisition)
+  level1Access: 'full', // All Level 1 themes unlimited
+  level1Features: {
+    allThemes: true,           // All vocabulary themes
+    flashcards: true,          // Spaced repetition
+    dailyWarmup: true,         // Daily warm-up ritual
+    progressTracking: true,    // Basic stats
+  },
+  
+  // LEVEL 2: Limited (comprehension teaser)
+  level2Access: 'limited',
+  level2Limits: {
+    sessionsPerMonth: 3,       // 3 comprehension sessions/month
+    themesAccess: ['airport', 'restaurant'], // Only 2 themes
+  },
+  
+  // LEVEL 3 & 4: Blocked
+  level3Access: false,         // Conversation - Premium only
+  level4Access: false,         // Immersion - Premium only
+  
+  // Features
+  voiceMode: false,            // Text only, no STT/TTS
+  languageAccess: 'msa',       // MSA only, no Darija
+  saveHistory: 7,              // days, then deleted
+  exportVocabulary: false,
+  offlineMode: false,
+  stories: false,              // No multi-character stories
+  
+  // UI
+  watermark: 'Plan Gratuit',   // Persistent badge
+  
+  // Costs
+  estimatedCostPerUser: 0.15,  // $/month (optimized for Level 1)
+};
+
+// CRITICAL: Level 1 is completely free to ensure everyone can start
+// This builds vocabulary base (300-500 words) before any paywall
+```
+
+### Premium Plan (9.99€/month)
+
+```typescript
+const premiumFeatures = {
+  // Full access to all levels
+  level1Access: 'full',
+  level2Access: 'full',
+  level3Access: 'full',
+  level4Access: 'full',
+  
+  // All features
+  conversationsPerMonth: Infinity,
+  allThemes: true,
+  languageAccess: ['msa', 'darija'], // Both
+  voiceMode: true,                   // Full STT/TTS
+  correctionsType: 'real_time',
+  saveHistory: Infinity,
+  exportVocabulary: true,            // PDF/Anki
+  offlineMode: true,                 // PWA cache
+  advancedStats: true,
+  stories: true,                     // Multi-character stories
+  prioritySupport: true,
+  watermark: false,
+  
+  // Costs
+  estimatedCostPerUser: 1.20,        // $/month (all features)
+  pricing: 9.99,                     // €/month
+};
+```
+
+### Student Plan (4.99€/month)
+
+```typescript
+const studentPlan = {
+  ...premiumFeatures,
+  requiresVerification: true,        // Student ID/email
+  pricing: 4.99,                     // €/month
+};
+```
+
+### Annual Plan (79€/year)
+
+```typescript
+const annualPlan = {
+  ...premiumFeatures,
+  discount: '20%',                   // = 6.58€/month effective
+  billingCycle: 'yearly',
+  pricing: 79,                       // €/year
+};
+```
+
+### Conversion Funnel Strategy
+
+```
+User Journey:
+1. Sign up → Start Level 1 (FREE, unlimited)
+2. Complete 300 words → Level 2 unlocked (3 sessions free teaser)
+3. After 3 Level 2 sessions → Paywall modal
+   "🎉 Tu progresses bien ! Débloque Level 3 pour pratiquer la conversation"
+4. Subscribe → Full access Levels 3 & 4
+
+Conversion triggers:
+- After completing 3 Level 2 sessions (teaser exhausted)
+- When user tries to access Level 3 (conversation)
+- When user tries to enable voice mode
+- When user tries to access Darija
+- When user tries to play interactive story
+```
+
+### Free-to-Premium Value Proposition
+
+```tsx
+<PaywallModal>
+  <h2>🚀 Prêt pour le niveau supérieur ?</h2>
+  
+  <Progress>
+    <Stat>✅ 247 mots maîtrisés</Stat>
+    <Stat>✅ 68% compréhension</Stat>
+    <Stat>✅ 7 jours de streak</Stat>
+  </Progress>
+  
+  <UpgradePrompt>
+    Débloque <strong>Level 3 : Conversation Assistée</strong>
+  </UpgradePrompt>
+  
+  <Features>
+    <Feature>✅ Conversations illimitées</Feature>
+    <Feature>✅ Mode vocal complet</Feature>
+    <Feature>✅ Darija marocaine</Feature>
+    <Feature>✅ Histoires interactives</Feature>
+    <Feature>✅ Tous les scénarios</Feature>
+  </Features>
+  
+  <Pricing>
+    <Plan selected>
+      <n>Premium</n>
+      <Price>9.99€<small>/mois</small></Price>
+      <CTA>Essai gratuit 7 jours →</CTA>
+    </Plan>
+    
+    <Plan>
+      <n>Annuel</n>
+      <Price>79€<small>/an</small></Price>
+      <Savings>Économise 20%</Savings>
+    </Plan>
+  </Pricing>
+  
+  <Guarantee>
+    💳 Annulation facile à tout moment
+  </Guarantee>
+</PaywallModal>
+```
+
+---
+
+### Free Plan (Intentionally Frustrating)
+```typescript
+const freePlanLimits = {
+  conversationsPerMonth: 2, // NOT 3, make it restrictive
+  maxDurationPerConversation: 5, // minutes (hard cutoff)
+  scenariosAccess: ['introduction'], // ONLY 1 scenario
+  languageAccess: 'msa', // MSA only, no Darija
+  voiceMode: false, // Text only
+  correctionsType: 'end_of_conversation', // Not real-time
+  saveHistory: 7, // days, then deleted
+  exportVocabulary: false,
+  offlineMode: false,
+  watermark: 'Plan Gratuit - Limite 2 conversations/mois', // Persistent UI badge
+};
+
+// Rate limiting middleware
+async function checkFreePlanLimits(userId: string): Promise<boolean> {
+  const user = await getUser(userId);
+  if (user.plan !== 'free') return true;
+  
+  const thisMonth = await getConversationCount(userId, 'current_month');
+  
+  if (thisMonth >= 2) {
+    throw new Error('FREE_LIMIT_REACHED');
+  }
+  return true;
+}
+```
+
+### Premium Plan (9.99€/month)
+```typescript
+const premiumFeatures = {
+  conversationsPerMonth: Infinity,
+  maxDurationPerConversation: Infinity,
+  scenariosAccess: 'all',
+  languageAccess: ['msa', 'darija'], // Both
+  voiceMode: true, // Full voice input/output
+  correctionsType: 'real_time', // Immediate
+  saveHistory: Infinity,
+  exportVocabulary: true, // PDF/Anki export
+  offlineMode: true, // PWA cache
+  advancedStats: true,
+  prioritySupport: true,
+  watermark: false,
+};
+```
+
+### Student Plan (4.99€/month)
+```typescript
+const studentPlan = {
+  ...premiumFeatures,
+  requiresVerification: true, // Student ID upload
+};
+```
+
+### Annual Plan (79€/year)
+```typescript
+const annualPlan = {
+  ...premiumFeatures,
+  discount: '20%', // = 6.58€/month effective
+  billingCycle: 'yearly',
+};
+```
+
+---

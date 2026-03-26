@@ -9,13 +9,31 @@ export interface Correction {
   severity: 'minor' | 'moderate' | 'major';
 }
 
+export type BuildSystemPromptOptions = {
+  /** Résumé mémoire + progression (pas l’historique complet des messages). */
+  memoryBlock?: string;
+};
+
 export const buildSystemPrompt = (
   level: Level, 
   language: Language, 
-  scenario: Scenario
+  scenario: Scenario,
+  options?: BuildSystemPromptOptions
 ): string => {
   const levelConfig = levelConfigs[level];
   const languageConfig = languageConfigs[language];
+
+  const memorySection =
+    options?.memoryBlock?.trim() !== undefined && options.memoryBlock.trim().length > 0
+      ? `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STUDENT MEMORY (summary + progress — not full chat logs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${options.memoryBlock.trim()}
+`
+      : '';
   
   return `You are a friendly and patient Arabic language tutor helping a ${level} student practice conversational Arabic.
 
@@ -104,6 +122,7 @@ SPECIAL INSTRUCTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 START THE CONVERSATION NOW
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${memorySection}
 
 Remember: You are IN the scenario (${scenario.nameEn}). The student is talking to you as if you are really there. Stay immersed, be natural, and make it feel like a real conversation in ${language === 'msa' ? 'Modern Standard Arabic' : 'Moroccan Darija'}.`;
 };

@@ -1,0 +1,23 @@
+---
+description: 🚀 LET'S BUILD!
+alwaysApply: false
+---
+## 🚀 LET'S BUILD!
+
+
+**Objectif produit :** itérer sur l’app **Expo** (`mobile/`) tout en gardant les **API Next.js** stables.
+
+**Commandes utiles :**
+```bash
+# Backend / pages web
+npm run dev
+
+# Application React Native
+npm run mobile
+```
+
+**Nouveau développement UI conversation :** préférer **`mobile/src/components/`** et **`mobile/app/`** ; conserver ou adapter le web dans `components/` seulement si besoin explicite.
+
+**Règle de synchro :** si vous modifiez `lib/prompts.ts`, `lib/scenarios.ts` ou `lib/constants.ts`, mettre à jour les copies sous **`mobile/src/lib/`** (ou extraire un package partagé).
+
+Good luck! 🎯🚀

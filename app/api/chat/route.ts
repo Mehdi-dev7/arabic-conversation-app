@@ -10,12 +10,14 @@ interface ChatRequestBody {
   language: Language;
   level: Level;
   conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
+  /** Optionnel : bloc mémoire (résumé + progression) — idéalement fourni par l’API après chargement User/Progress. */
+  memoryBlock?: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body: ChatRequestBody = await req.json();
-    const { message, scenarioId, language, level, conversationHistory } = body;
+    const { message, scenarioId, language, level, conversationHistory, memoryBlock } = body;
 
     if (!message || !scenarioId || !language || !level) {
       return NextResponse.json(
@@ -32,7 +34,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const systemPrompt = buildSystemPrompt(level, language, scenario);
+    const systemPrompt = buildSystemPrompt(level, language, scenario, {
+      memoryBlock,
+    });
     
     const messages = [
       ...conversationHistory.map(msg => ({

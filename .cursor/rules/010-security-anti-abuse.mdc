@@ -1,0 +1,67 @@
+---
+description: 🔒 SECURITY & ANTI-ABUSE
+globs: **/api/**/*,**/middleware.ts,**/auth/**/*
+alwaysApply: false
+---
+## 🔒 SECURITY & ANTI-ABUSE
+
+
+### Rate Limiting
+```typescript
+// Free users: strict limits
+app.use('/api/conversation', rateLimiter({
+  windowMs: 2 * 60 * 60 * 1000, // 2 hours
+  max: 1, // 1 conversation per 2 hours
+  skipSuccessfulRequests: false,
+  keyGenerator: (req) => req.user.id,
+  skip: (req) => req.user.plan === 'premium',
+}));
+
+// Premium users: generous but still protected
+app.use('/api/conversation', rateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // 10 requests/min (protect against spam)
+  keyGenerator: (req) => req.user.id,
+}));
+```
+
+### Account Verification
+```typescript
+// Only Google/Apple Sign-In (no custom emails)
+const authProviders = ['google', 'apple'];
+
+// Block disposable emails
+const blockedEmailDomains = [
+  'guerrillamail.com',
+  'tempmail.com',
+  'throwaway.email',
+  // ... add more
+];
+
+// Limit 1 free account per IP per 24h
+async function checkIPLimit(ip: string): Promise<boolean> {
+  const recentAccounts = await supabase
+    .from('users')
+    .select('*')
+    .eq('signup_ip', ip)
+    .eq('plan', 'free')
+    .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000));
+  
+  return recentAccounts.length === 0;
+}
+```
+
+### Token Usage Optimization
+```typescript
+// Cache common beginner responses
+const responseCacheKey = (scenario: string, userInput: string, level: string) => 
+  `cache:${scenario}:${level}:${hashInput(userInput)}`;
+
+// Example: "مرحبا" (hello) in 'introduction' scenario
+// → Pre-generated response cached
+// → Cost: 0$ instead of 0.03$
+
+// Estimated savings: 30% on beginner conversations
+```
+
+---

@@ -1,0 +1,53 @@
+---
+description: 📦 DEPLOYMENT
+globs: **/*.{ts,tsx,json,yml,yaml}
+alwaysApply: false
+---
+## 📦 DEPLOYMENT
+
+
+### Environment Variables (.env.local)
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Anthropic (Claude API)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# OpenAI (Whisper - premium only)
+OPENAI_API_KEY=sk-...
+
+# Google Cloud (TTS - premium only)
+GOOGLE_CLOUD_API_KEY=...
+
+# Stripe
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# App Config
+NEXT_PUBLIC_APP_URL=https://arabic-conversation.app
+```
+
+### Vercel Deployment
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+
+# Set environment variables in Vercel dashboard
+# Enable Edge Functions for API routes (faster globally)
+```
+
+### Supabase Setup
+```sql
+-- Run migrations from /supabase/migrations
+-- Enable Row Level Security (RLS)
+-- Create policies for user data isolation
+```
+
+---

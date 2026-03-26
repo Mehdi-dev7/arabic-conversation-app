@@ -1,0 +1,17 @@
+---
+description: 🎨 DESIGN PRINCIPLES
+globs: **/*.{tsx,css}
+alwaysApply: false
+---
+## 🎨 DESIGN PRINCIPLES
+
+
+1. **Bold & Distinctive**: No generic AI aesthetics
+2. **Culturally Respectful**: Islamic design patterns, halal-compliant
+3. **Arabic-First**: RTL properly implemented, beautiful Arabic typography
+4. **Immersive**: Backgrounds + ambient sounds = presence
+5. **Encouraging**: Corrections are gentle, not punitive
+6. **Mobile-Optimized**: Most users on phones
+7. **Fast**: < 2s page load, instant UI feedback
+
+---

@@ -1,0 +1,131 @@
+---
+description: 📝 CODING STANDARDS
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+## 📝 CODING STANDARDS
+
+
+### TypeScript
+```typescript
+// Strict mode enabled
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true
+  }
+}
+
+// All functions typed
+function sendMessage(
+  content: string, 
+  userId: string, 
+  scenarioId: string
+): Promise<ConversationResponse> {
+  // ...
+}
+
+// No 'any' types allowed (use 'unknown' if truly dynamic)
+```
+
+### Component Structure
+```tsx
+// Functional components with TypeScript
+interface ChatInterfaceProps {
+  scenarioId: string;
+  userLevel: Level;
+  language: Language;
+}
+
+export function ChatInterface({ 
+  scenarioId, 
+  userLevel, 
+  language 
+}: ChatInterfaceProps) {
+  // Hooks at top
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Event handlers
+  const handleSendMessage = async (content: string) => {
+    // ...
+  };
+  
+  // Render
+  return (
+    <div className="chat-container">
+      {/* ... */}
+    </div>
+  );
+}
+```
+
+### React Native (`mobile/`)
+- Préférer **`View` / `Text` / `Pressable` / `FlatList`** + **`StyleSheet.create`**, alias `@/` → `src/` (voir `mobile/babel.config.js`).
+- **RTL arabe :** `textAlign: 'right'`, `writingDirection: 'rtl'` sur `Text` ; pas de prop `dir` (non typée sur RN).
+- **Animations :** `react-native-reanimated` ; avatar **`react-native-svg`** (pas Framer Motion).
+- **Données / API :** `src/api/chat.ts` + **`EXPO_PUBLIC_API_URL`** vers le backend Next.js.
+
+### API Routes
+```typescript
+// app/api/chat/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. Authenticate user
+    const user = await authenticate(req);
+    
+    // 2. Validate request body
+    const { message, scenarioId, language } = await req.json();
+    
+    // 3. Check rate limits
+    await checkRateLimits(user.id, user.plan);
+    
+    // 4. Call Claude API
+    const response = await generateResponse(message, scenarioId, language, user.level);
+    
+    // 5. Save to database
+    await saveConversation(user.id, message, response);
+    
+    // 6. Return response
+    return NextResponse.json({ success: true, response });
+    
+  } catch (error) {
+    console.error('Chat API error:', error);
+    return NextResponse.json(
+      { error: error.message }, 
+      { status: error.status || 500 }
+    );
+  }
+}
+```
+
+### CSS/Tailwind
+```tsx
+// Use Tailwind utilities, custom CSS only for complex animations
+<div className="
+  flex flex-col h-screen
+  bg-gradient-to-br from-primary-night to-neutral-warm-gray
+  text-neutral-sand
+  rtl:text-right ltr:text-left
+">
+  {/* Arabic text auto-RTL */}
+  <p className="font-arabic-body text-lg" dir="rtl">
+    مرحبا بك في التطبيق
+  </p>
+</div>
+
+// Custom CSS only for what Tailwind can't do
+@keyframes avatar-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.avatar-speaking {
+  animation: avatar-pulse 2s ease-in-out infinite;
+}
+```
+
+---

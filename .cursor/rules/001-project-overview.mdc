@@ -1,0 +1,19 @@
+---
+description: 🎯 PROJECT OVERVIEW
+alwaysApply: true
+---
+## 🎯 PROJECT OVERVIEW
+
+
+**Name:** Arabic Conversation Practice (working title)
+**Type:** **Hybrid monorepo** — client mobile **React Native (Expo)** + backend / API **Next.js** (App Router). Le site web Next.js peut rester pour landing/admin ou être réduit ; l’app native est la cible produit principale.
+**Purpose:** AI-powered conversational Arabic learning platform with immersive scenarios
+**Target Users:** French/English speakers learning Modern Standard Arabic (MSA) or Moroccan Darija
+**Unique Selling Points:**
+- Halal-compliant gestural avatar (NO face/eyes)
+- Real-time corrections during conversation
+- Adaptive difficulty based on user progress
+- Immersive scenarios with evolving backgrounds
+- Bilingual: MSA + Moroccan Darija
+
+---

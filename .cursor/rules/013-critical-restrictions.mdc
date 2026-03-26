@@ -1,0 +1,28 @@
+---
+description: 🚫 CRITICAL RESTRICTIONS
+alwaysApply: false
+---
+## 🚫 CRITICAL RESTRICTIONS
+
+
+### NEVER DO:
+1. **NO realistic human faces/eyes in avatar** (Islamic guideline violation)
+2. **NO unlimited free access** (business suicide)
+3. **NO storing API keys in frontend** (security breach)
+4. **NO generic fonts** (Inter, Roboto, Arial = lazy design)
+5. **NO purple gradients on white** (AI slop aesthetic)
+6. **NO skipping email verification** (spam/abuse magnet)
+7. **NO complex onboarding** (< 2 minutes to first conversation)
+8. **NO unvalidated Arabic text** (encoding issues, mojibake)
+
+### ALWAYS DO:
+1. **RTL support** for Arabic text (web: `dir="rtl"` ; React Native: `writingDirection` + `textAlign`)
+2. **Validate Stripe webhooks** (payment security)
+3. **Rate limit ALL API routes** (prevent abuse)
+4. **Log corrections** in database (analytics gold)
+5. **Cache common responses** (save API costs)
+6. **Error boundaries** around AI calls (graceful failures)
+7. **Accessibility** (ARIA labels, keyboard navigation)
+8. **Mobile-first design** (primary usage device)
+
+---

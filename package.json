@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "mobile": "cd mobile && npx expo start",
+    "api": "cd server && npm run dev"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

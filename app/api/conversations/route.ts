@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { computeMessagesRetentionExpiresAt } from '@/lib/retention';
 
 // Sauvegarder une conversation
 export async function POST(req: NextRequest) {
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    const { scenarioId, language, level, messages, duration } = await req.json();
+    const { scenarioId, language, level, messages, duration, sessionSummary } = await req.json();
 
     if (!scenarioId || !language || !level || !messages) {
       return NextResponse.json(
@@ -57,6 +58,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const retentionUntil = computeMessagesRetentionExpiresAt(user.plan);
+
     // Sauvegarder la conversation
     const conversation = await prisma.conversation.create({
       data: {
@@ -66,6 +69,11 @@ export async function POST(req: NextRequest) {
         level,
         messages,
         duration: duration || 0,
+        messagesRetentionExpiresAt: retentionUntil,
+        sessionSummary:
+          typeof sessionSummary === 'string' && sessionSummary.trim().length > 0
+            ? sessionSummary.trim()
+            : undefined,
       },
     });
 

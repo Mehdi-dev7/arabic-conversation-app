@@ -26,6 +26,10 @@ model User {
   stripeCustomerId    String?
   subscriptionStatus  String?
 
+  /// Résumé glissant pour le prompt IA (pas l’historique complet). Mis à jour en fin de session.
+  aiMemorySummary   String?   @db.Text
+  aiMemoryUpdatedAt DateTime?
+
   accounts           Account[]
   sessions           Session[]
   conversations      Conversation[]
@@ -107,10 +111,16 @@ model Conversation {
   duration   Int      @default(0)
   createdAt  DateTime @default(now())
 
+  /// Après cette date, les messages bruts peuvent être purgés (politique plan free/premium).
+  messagesRetentionExpiresAt DateTime?
+  /// Résumé court conservé après purge des messages (souvenir + stats sans tout le fil).
+  sessionSummary           String?   @db.Text
+
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   corrections Correction[]
 
   @@index([userId])
+  @@index([messagesRetentionExpiresAt])
   @@map("conversations")
 }
 
@@ -139,6 +149,8 @@ model Progress {
   totalHours          Float    @default(0)
   wordsLearned        Int      @default(0)
   commonErrors        Json?
+  /// Vue structurée optionnelle (thèmes vus, jalons) pour progression sans stocker tout le chat.
+  learningSnapshot    Json?
   updatedAt           DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

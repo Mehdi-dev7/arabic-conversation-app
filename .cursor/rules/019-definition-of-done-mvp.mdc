@@ -1,0 +1,29 @@
+---
+description: ✅ DEFINITION OF DONE (MVP)
+alwaysApply: false
+---
+## ✅ DEFINITION OF DONE (MVP)
+
+
+**Clients :** expérience principale = app **`mobile/`** (Expo) ; le web Next.js sert d’API / landing selon besoin.
+
+An MVP is complete when:
+- [x] User can sign up with Google/Apple
+- [x] User can select MSA or Darija
+- [x] User can select beginner level
+- [x] User can start "Introduction" scenario
+- [x] User can type messages in Arabic
+- [x] Claude AI responds naturally in chosen language
+- [x] Corrections appear in conversation
+- [x] Avatar animates with gestures
+- [x] Background matches scenario
+- [x] Free plan limit enforced (2 conversations/month)
+- [x] Conversation saves to database
+- [ ] **App Expo** : chat fonctionnel contre API prod (`EXPO_PUBLIC_API_URL`), build testé sur iOS + Android
+- [x] PWA installable on mobile *(optionnel si focus 100 % natif)*
+- [x] Deployed to production (Vercel)
+- [x] Zero critical bugs
+- [x] Lighthouse score > 85 *(web)*
+- [x] Load time < 3s on 3G *(web)*
+
+---

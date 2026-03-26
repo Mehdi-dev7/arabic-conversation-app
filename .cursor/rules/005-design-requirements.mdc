@@ -1,0 +1,95 @@
+---
+description: 🎨 DESIGN REQUIREMENTS
+globs: **/*.{tsx,css}
+alwaysApply: false
+---
+## 🎨 DESIGN REQUIREMENTS
+
+
+### Avatar Design (Halal-Compliant)
+**CRITICAL:** NO face, NO eyes, NO realistic human representation
+
+**Chosen Concept:** Abstract humanoid silhouette
+```
+- Head: Glowing sphere (no facial features)
+- Body: Connected geometric shapes (minimalist)
+- Hands: Visible for cultural gestures
+- Animations:
+  * Hand on heart (respect/gratitude)
+  * Beckoning gesture (encouragement)
+  * Pointing (corrections)
+  * Slight sway when speaking
+  * Pulse/glow when listening
+- Style: Elegant, minimalist, culturally respectful
+- Color: Adapts to scenario (golden in mosque, blue in cafe, etc.)
+```
+
+**Technical Implementation:**
+- Framer Motion for smooth animations
+- SVG-based shapes (scalable, lightweight)
+- CSS animations for glow effects
+- Lottie files for complex gestures (pre-made, loop)
+
+### Evolving Backgrounds
+Each scenario has unique background + ambient sound:
+
+```javascript
+scenarios = {
+  cafe: {
+    background: 'Moroccan cafe interior (tables, zellige tiles)',
+    ambient: 'Light chatter, coffee machine sounds',
+    avatar_color: '#8B4513' (coffee brown)
+  },
+  airport: {
+    background: 'Modern terminal (departure boards)',
+    ambient: 'Distant announcements, rolling luggage',
+    avatar_color: '#4A90E2' (sky blue)
+  },
+  souk: {
+    background: 'Colorful market stalls (fabrics, spices)',
+    ambient: 'Vendor calls, bargaining voices',
+    avatar_color: '#D4AF37' (golden)
+  },
+  restaurant: {
+    background: 'Moroccan restaurant (lanterns, cushions)',
+    ambient: 'Cutlery, low conversations',
+    avatar_color: '#C46845' (terracotta)
+  },
+  home: {
+    background: 'Moroccan living room (salon, tea set)',
+    ambient: 'Calm, birds chirping',
+    avatar_color: '#556B2F' (olive green)
+  }
+}
+```
+
+### Typography
+```css
+/* Arabic text */
+--font-arabic-display: 'Cairo', sans-serif;
+--font-arabic-body: 'Tajawal', sans-serif;
+
+/* Latin text (French/English UI) */
+--font-latin: 'Figtree', sans-serif;
+
+/* Avoid: Inter, Roboto, Arial (generic) */
+```
+
+### Color Palette
+```css
+:root {
+  --primary-night: #1a2332; /* Deep blue-black */
+  --primary-gold: #d4af37; /* Arabic gold */
+  --secondary-terracotta: #c46845;
+  --secondary-olive: #556b2f;
+  --neutral-sand: #f5f5dc; /* Off-white */
+  --neutral-warm-gray: #8b8378;
+  
+  /* Correction colors */
+  --error-red: #e74c3c; /* Soft red */
+  --success-green: #27ae60; /* Encouraging green */
+  --warning-orange: #f39c12; /* Mild correction */
+}
+```
+
+---

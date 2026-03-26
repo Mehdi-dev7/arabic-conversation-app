@@ -1,0 +1,81 @@
+---
+description: 📊 DATABASE SCHEMA (Supabase)
+globs: **/prisma/**/*,**/schema.prisma,**/supabase/**/*.sql
+alwaysApply: false
+---
+## 📊 DATABASE SCHEMA (Supabase)
+
+
+```sql
+-- Users table
+users (
+  id UUID PRIMARY KEY,
+  email TEXT UNIQUE,
+  name TEXT,
+  plan TEXT DEFAULT 'free', -- 'free', 'premium', 'student'
+  current_level TEXT DEFAULT 'beginner', -- 'beginner', 'intermediate', 'advanced'
+  preferred_language TEXT DEFAULT 'msa', -- 'msa' (Modern Standard Arabic) or 'darija' (Moroccan)
+  streak_days INTEGER DEFAULT 0,
+  created_at TIMESTAMP,
+  stripe_customer_id TEXT,
+  subscription_status TEXT
+)
+
+-- Conversations table
+conversations (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  scenario_id TEXT, -- e.g., 'cafe', 'airport', 'restaurant'
+  language TEXT, -- 'msa' or 'darija'
+  level TEXT, -- 'beginner', 'intermediate', 'advanced'
+  messages JSONB[], -- [{role: 'user'|'assistant', content: TEXT, timestamp: TIMESTAMP}]
+  duration_seconds INTEGER,
+  created_at TIMESTAMP
+)
+
+-- Vocabulary table
+vocabulary (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  word TEXT, -- Arabic word
+  translation TEXT, -- French/English translation
+  context TEXT, -- Sentence where learned
+  scenario_id TEXT,
+  mastery_level INTEGER DEFAULT 0, -- 0-5 (spaced repetition)
+  learned_at TIMESTAMP,
+  last_reviewed TIMESTAMP
+)
+
+-- Progress tracking
+progress (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  scenarios_completed TEXT[], -- Array of completed scenario IDs
+  total_conversations INTEGER DEFAULT 0,
+  total_hours FLOAT DEFAULT 0,
+  words_learned INTEGER DEFAULT 0,
+  common_errors JSONB, -- {error_type: count}
+  updated_at TIMESTAMP
+)
+
+-- Corrections log
+corrections (
+  id UUID PRIMARY KEY,
+  conversation_id UUID REFERENCES conversations(id),
+  user_input TEXT, -- Incorrect sentence
+  correction TEXT, -- Correct version
+  explanation TEXT, -- Grammar explanation
+  error_type TEXT, -- 'conjugation', 'vocabulary', 'syntax', etc.
+  created_at TIMESTAMP
+)
+
+-- Rate limiting (free plan)
+rate_limits (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  conversations_this_month INTEGER DEFAULT 0,
+  last_reset TIMESTAMP
+)
+```
+
+---

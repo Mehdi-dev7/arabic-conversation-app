@@ -1,0 +1,725 @@
+---
+description: 🎭 INTERACTIVE STORIES (Multi-Character, Level 3-4 Only)
+alwaysApply: false
+---
+## 🎭 INTERACTIVE STORIES (Multi-Character, Level 3-4 Only)
+
+
+### Story System Architecture
+
+```typescript
+interface Story {
+  id: string;
+  title: string;          // Arabic title
+  titleEn: string;        // French/English title
+  description: string;
+  level: 3 | 4;          // Advanced only
+  duration: number;       // Estimated minutes
+  characters: Character[];
+  scenes: Scene[];
+  achievements: Achievement[];
+}
+
+interface Character {
+  id: string;
+  name: string;          // Arabic name
+  nameEn: string;        // French name
+  role: string;          // 'taxi_driver', 'vendor', 'police', etc.
+  personality: string;   // 'friendly', 'grumpy', 'helpful', 'rushed'
+  dialect: 'msa' | 'darija';
+  
+  // Visual (halal-compliant)
+  avatar: {
+    type: 'svg' | 'lottie';
+    file: string;        // Path to avatar file
+    headShape: 'sphere' | 'oval'; // NO face
+    accessories: string[]; // ['hat', 'uniform', 'scarf']
+    dominantColor: string; // e.g., '#FFD700' for taxi
+  };
+  
+  // Audio
+  ambientSound?: string; // Character-specific sound (optional)
+}
+
+interface Scene {
+  id: string;
+  sceneNumber: number;
+  location: string;      // Arabic location name
+  locationEn: string;    // French location name
+  background: {
+    image: string;       // Background image path
+    style: 'realistic' | 'illustrated' | 'minimal';
+  };
+  audio: SceneAudio;
+  activeCharacter: string; // Character ID
+  objectives: string[];  // What user should accomplish
+  nextScene: string | ((userChoices: string[]) => string); // Next scene or branching
+}
+
+interface SceneAudio {
+  background: string;    // Loop ambient sound
+  character?: string;    // Character-specific sound
+  events: {
+    trigger: string;     // Event name
+    sound: string;       // Sound file
+    volume: number;      // 0-1
+  }[];
+}
+
+interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  condition: (storyState: any) => boolean;
+}
+```
+
+### Character Visual Design (Halal-Compliant)
+
+**MANDATORY RULES:**
+- NO facial features (eyes, mouth, nose)
+- Head = simple geometric shape (sphere, oval, glowing orb)
+- Body = minimalist silhouette
+- Identity through: clothing, accessories, colors, posture
+
+**Character Examples:**
+
+```typescript
+const characters = [
+  {
+    id: 'ahmed_taxi',
+    name: 'أحمد',
+    nameEn: 'Ahmed (Taxi Driver)',
+    role: 'taxi_driver',
+    personality: 'Talkative and curious',
+    dialect: 'darija',
+    avatar: {
+      type: 'svg',
+      file: '/avatars/taxi-driver.svg',
+      headShape: 'sphere',
+      accessories: ['cap', 'steering_wheel'], // 🧢
+      dominantColor: '#FFD700', // Yellow (taxi color)
+    },
+    ambientSound: 'radio-arabic-low.mp3',
+  },
+  
+  {
+    id: 'hassan_vendor',
+    name: 'حسان',
+    nameEn: 'Hassan (Spice Vendor)',
+    role: 'spice_vendor',
+    personality: 'Shrewd merchant who loves to negotiate',
+    dialect: 'darija',
+    avatar: {
+      type: 'svg',
+      file: '/avatars/spice-vendor.svg',
+      headShape: 'sphere',
+      accessories: ['turban', 'spice_tray'], // 🧕
+      dominantColor: '#D2691E', // Cinnamon brown
+    },
+    ambientSound: 'spices-pouring.mp3',
+  },
+  
+  {
+    id: 'sophie_tourist',
+    name: 'صوفي',
+    nameEn: 'Sophie (Lost Tourist)',
+    role: 'tourist',
+    personality: 'Lost and stressed',
+    dialect: 'msa', // Learned standard Arabic
+    avatar: {
+      type: 'svg',
+      file: '/avatars/tourist.svg',
+      headShape: 'sphere',
+      accessories: ['sun_hat', 'backpack', 'camera'], // 👒🎒📷
+      dominantColor: '#87CEEB', // Sky blue
+    },
+  },
+  
+  {
+    id: 'karim_police',
+    name: 'كريم',
+    nameEn: 'Officer Karim',
+    role: 'police_officer',
+    personality: 'Professional and helpful',
+    dialect: 'msa',
+    avatar: {
+      type: 'svg',
+      file: '/avatars/police.svg',
+      headShape: 'sphere',
+      accessories: ['police_cap', 'badge', 'walkie_talkie'], // 👮
+      dominantColor: '#000080', // Navy blue
+    },
+    ambientSound: 'walkie-talkie-static.mp3',
+  },
+  
+  {
+    id: 'fatima_carpet',
+    name: 'فاطمة',
+    nameEn: 'Fatima (Carpet Seller)',
+    role: 'carpet_seller',
+    personality: 'Warm and hospitable',
+    dialect: 'darija',
+    avatar: {
+      type: 'svg',
+      file: '/avatars/carpet-seller.svg',
+      headShape: 'sphere',
+      accessories: ['colorful_scarf', 'tea_pot'], // 🧕🍵
+      dominantColor: '#DC143C', // Crimson
+    },
+    ambientSound: 'tea-pouring.mp3',
+  },
+];
+```
+
+### Example Story: "A Day at the Souk"
+
+```typescript
+const soukAdventure: Story = {
+  id: 'souk_adventure',
+  title: 'يوم في السوق',
+  titleEn: 'A Day at the Souk',
+  description: 'Explore Marrakech souk and interact with various people',
+  level: 4,
+  duration: 30,
+  
+  characters: [
+    characters.find(c => c.id === 'ahmed_taxi'),
+    characters.find(c => c.id === 'hassan_vendor'),
+    characters.find(c => c.id === 'sophie_tourist'),
+    characters.find(c => c.id === 'karim_police'),
+  ],
+  
+  scenes: [
+    // SCENE 1: In the Taxi
+    {
+      id: 'scene_1_taxi',
+      sceneNumber: 1,
+      location: 'في التاكسي',
+      locationEn: 'In the Taxi',
+      background: {
+        image: '/backgrounds/taxi-interior.jpg',
+        style: 'illustrated',
+      },
+      audio: {
+        background: 'traffic-ambient.mp3',
+        character: 'radio-arabic-low.mp3',
+        events: [
+          { trigger: 'ahmed_speaks', sound: 'car-indicator.mp3', volume: 0.3 },
+          { trigger: 'user_asks_price', sound: 'meter-beep.mp3', volume: 0.5 },
+          { trigger: 'scene_end', sound: 'car-door-close.mp3', volume: 0.8 },
+        ],
+      },
+      activeCharacter: 'ahmed_taxi',
+      objectives: [
+        'Saluer le chauffeur',
+        'Indiquer destination (السوق)',
+        'Discuter du prix',
+        'Faire conversation (météo, ville)',
+      ],
+      nextScene: 'scene_2_souk_entrance',
+    },
+    
+    // SCENE 2: Souk Entrance
+    {
+      id: 'scene_2_souk_entrance',
+      sceneNumber: 2,
+      location: 'مدخل السوق',
+      locationEn: 'Souk Entrance',
+      background: {
+        image: '/backgrounds/souk-entrance.jpg',
+        style: 'illustrated',
+      },
+      audio: {
+        background: 'souk-crowd-loop.mp3',
+        character: 'spices-pouring.mp3',
+        events: [
+          { trigger: 'hassan_shows_saffron', sound: 'jar-open.mp3', volume: 0.4 },
+          { trigger: 'negotiation_starts', sound: 'merchant-call-distant.mp3', volume: 0.3 },
+          { trigger: 'purchase_complete', sound: 'coins-jingle.mp3', volume: 0.6 },
+        ],
+      },
+      activeCharacter: 'hassan_vendor',
+      objectives: [
+        'Approcher l\'étal d\'épices',
+        'Demander prix du safran',
+        'Négocier',
+        'Acheter ou refuser poliment',
+      ],
+      nextScene: (userChoices) => {
+        if (userChoices.includes('acheter')) {
+          return 'scene_3a_shopping_more';
+        } else {
+          return 'scene_3b_get_lost';
+        }
+      },
+    },
+    
+    // SCENE 3B: Lost in Souk (Branching path)
+    {
+      id: 'scene_3b_get_lost',
+      sceneNumber: 3,
+      location: 'ضاع في السوق',
+      locationEn: 'Lost in the Souk',
+      background: {
+        image: '/backgrounds/souk-alley.jpg',
+        style: 'illustrated',
+      },
+      audio: {
+        background: 'distant-voices.mp3',
+        events: [
+          { trigger: 'tourist_approaches', sound: 'camera-click.mp3', volume: 0.4 },
+          { trigger: 'map_unfold', sound: 'map-unfold.mp3', volume: 0.5 },
+        ],
+      },
+      activeCharacter: 'sophie_tourist',
+      objectives: [
+        'Une touriste te demande son chemin',
+        'Essayer de l\'aider en arabe',
+        'Utiliser vocabulaire: يمين (droite), يسار (gauche), مستقيم (tout droit)',
+      ],
+      nextScene: 'scene_4_police',
+    },
+    
+    // SCENE 4: With the Police Officer
+    {
+      id: 'scene_4_police',
+      sceneNumber: 4,
+      location: 'مع الشرطي',
+      locationEn: 'With the Police Officer',
+      background: {
+        image: '/backgrounds/police-stand.jpg',
+        style: 'illustrated',
+      },
+      audio: {
+        background: 'ambient-street.mp3',
+        character: 'walkie-talkie-static.mp3',
+        events: [
+          { trigger: 'police_helps', sound: 'whistle-police.mp3', volume: 0.3 },
+        ],
+      },
+      activeCharacter: 'karim_police',
+      objectives: [
+        'Demander ton chemin au policier',
+        'Ou signaler la touriste perdue',
+        'Vocabulaire formel (أين، كيف أصل إلى)',
+      ],
+      nextScene: 'scene_5_end',
+    },
+    
+    // SCENE 5: Story End
+    {
+      id: 'scene_5_end',
+      sceneNumber: 5,
+      location: 'نهاية الرحلة',
+      locationEn: 'End of Adventure',
+      background: {
+        image: '/backgrounds/souk-sunset.jpg',
+        style: 'illustrated',
+      },
+      audio: {
+        background: 'evening-souk.mp3',
+        events: [],
+      },
+      activeCharacter: null, // Narrator only
+      objectives: ['Récapitulatif de ton aventure'],
+      nextScene: null,
+    },
+  ],
+  
+  achievements: [
+    {
+      id: 'souk_negotiator',
+      name: 'Négociateur du Souk',
+      description: 'Tu as négocié avec succès le prix du safran',
+      icon: '🏆',
+      condition: (state) => state.negotiationSuccess === true,
+    },
+    {
+      id: 'good_samaritan',
+      name: 'Bon Samaritain',
+      description: 'Tu as aidé la touriste perdue',
+      icon: '🌟',
+      condition: (state) => state.helpedTourist === true,
+    },
+  ],
+};
+```
+
+### More Story Examples
+
+```typescript
+const stories: Story[] = [
+  // Level 3 Stories
+  {
+    id: 'doctor_visit',
+    title: 'عند الطبيب',
+    titleEn: 'At the Doctor',
+    level: 3,
+    duration: 25,
+    characters: ['receptionist', 'doctor', 'pharmacist'],
+    scenes: ['Reception', 'Waiting room', 'Consultation', 'Pharmacy'],
+  },
+  
+  {
+    id: 'job_interview',
+    title: 'مقابلة العمل',
+    titleEn: 'Job Interview',
+    level: 3,
+    duration: 30,
+    characters: ['hr_manager', 'team_lead', 'future_colleague'],
+    scenes: ['Reception', 'HR Interview', 'Technical test', 'Office tour'],
+  },
+  
+  // Level 4 Stories
+  {
+    id: 'apartment_problem',
+    title: 'حل مشكلة',
+    titleEn: 'Solving a Problem',
+    level: 4,
+    duration: 35,
+    characters: ['landlord', 'plumber', 'neighbor', 'insurance_agent'],
+    scenes: ['Water leak discovered', 'Call plumber', 'Neighbor dispute', 'Insurance claim'],
+  },
+  
+  {
+    id: 'morocco_trip',
+    title: 'سفر إلى المغرب',
+    titleEn: 'Trip to Morocco',
+    level: 4,
+    duration: 45,
+    characters: ['flight_attendant', 'customs_officer', 'taxi_driver', 'hotel_receptionist', 'tour_guide'],
+    scenes: ['On the plane', 'Customs', 'Taxi to hotel', 'Hotel check-in', 'Guided tour'],
+  },
+];
+```
+
+### Audio System Implementation
+
+```typescript
+// Audio Manager with Howler.js
+class StoryAudioManager {
+  private backgroundLoop: Howl;
+  private characterLoop?: Howl;
+  private eventSounds: Map<string, Howl>;
+  
+  constructor(sceneAudio: SceneAudio) {
+    // Background ambient (loop)
+    this.backgroundLoop = new Howl({
+      src: [`/audio/ambient/${sceneAudio.background}`],
+      loop: true,
+      volume: 0.4,
+      html5: true, // Streaming for large files
+    });
+    
+    // Character sound (loop, optional)
+    if (sceneAudio.character) {
+      this.characterLoop = new Howl({
+        src: [`/audio/character/${sceneAudio.character}`],
+        loop: true,
+        volume: 0.2,
+      });
+    }
+    
+    // Preload event sounds
+    sceneAudio.events.forEach(event => {
+      this.eventSounds.set(event.trigger, new Howl({
+        src: [`/audio/events/${event.sound}`],
+        volume: event.volume,
+      }));
+    });
+  }
+  
+  start() {
+    this.backgroundLoop.play();
+    this.characterLoop?.play();
+  }
+  
+  playEvent(trigger: string) {
+    const sound = this.eventSounds.get(trigger);
+    if (sound) {
+      sound.play();
+    }
+  }
+  
+  stop() {
+    this.backgroundLoop.fade(0.4, 0, 1000); // Fade out 1s
+    this.characterLoop?.fade(0.2, 0, 1000);
+    setTimeout(() => {
+      this.backgroundLoop.stop();
+      this.characterLoop?.stop();
+    }, 1000);
+  }
+  
+  transition(newSceneAudio: SceneAudio) {
+    // Crossfade between scenes
+    this.stop();
+    setTimeout(() => {
+      const newManager = new StoryAudioManager(newSceneAudio);
+      newManager.start();
+      return newManager;
+    }, 1000);
+  }
+}
+```
+
+### Character System Prompts (Multi-Character)
+
+```typescript
+// Dynamic system prompt per character
+const buildCharacterPrompt = (character: Character, scene: Scene) => `
+You are ${character.name} (${character.nameEn}), a ${character.role}.
+Personality: ${character.personality}
+Dialect: ${character.dialect === 'msa' ? 'Modern Standard Arabic' : 'Moroccan Darija'}
+
+CURRENT SCENE: ${scene.locationEn}
+Your role in this scene: ${getCharacterRole(character.id, scene)}
+
+OBJECTIVES for the user (guide them naturally):
+${scene.objectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
+
+YOUR INSTRUCTIONS:
+- Speak ONLY as ${character.name}
+- Stay in character (personality: ${character.personality})
+- Use ${character.dialect} dialect consistently
+- React naturally to user's responses
+- Guide user through objectives without being obvious
+- Don't break the 4th wall
+- When all objectives are naturally met, signal: [SCENE_COMPLETE]
+
+SCENE CONTEXT:
+${scene.description || ''}
+
+Begin the scene naturally with an appropriate greeting or action.
+`;
+
+// Switch character = new system prompt
+async function switchCharacter(
+  newCharacter: Character, 
+  scene: Scene,
+  conversationHistory: Message[]
+) {
+  const systemPrompt = buildCharacterPrompt(newCharacter, scene);
+  
+  // Transition UI
+  showCharacterTransition({
+    character: newCharacter,
+    location: scene.locationEn,
+  });
+  
+  // First message from new character
+  const greeting = await claude.messages.create({
+    model: "claude-sonnet-4-20250514",
+    system: systemPrompt,
+    messages: [
+      ...conversationHistory, // Keep context
+      { role: "user", content: "[USER_ARRIVES_AT_SCENE]" }
+    ],
+  });
+  
+  return greeting;
+}
+```
+
+### Story UI Components
+
+```tsx
+<StoryMode>
+  {/* Scene header */}
+  <SceneHeader>
+    <LocationBadge>📍 {currentScene.locationEn}</LocationBadge>
+    <ProgressBar>
+      Scène {currentScene.sceneNumber}/{totalScenes}
+    </ProgressBar>
+  </SceneHeader>
+  
+  {/* Dynamic background */}
+  <BackgroundImage 
+    src={currentScene.background.image}
+    style={currentScene.background.style}
+  />
+  
+  {/* Ambient audio (auto-play) */}
+  <AmbientAudio manager={audioManager} />
+  
+  {/* Active character (large, central) */}
+  <CharacterDisplay>
+    <CharacterAvatar
+      character={activeCharacter}
+      animation={isCharacterSpeaking ? 'talking' : 'idle'}
+    />
+    <CharacterBadge>
+      <Icon>{getCharacterIcon(activeCharacter)}</Icon>
+      <Name>{activeCharacter.nameEn}</Name>
+      <Role>{activeCharacter.role}</Role>
+    </CharacterBadge>
+  </CharacterDisplay>
+  
+  {/* Speech bubble */}
+  <SpeechBubble position="top-left" dir="rtl">
+    <Message>{activeCharacter.currentMessage}</Message>
+    {isSpeaking && <AudioWaveIndicator />}
+  </SpeechBubble>
+  
+  {/* Objectives sidebar (collapsible) */}
+  <ObjectivesSidebar>
+    <h4>Objectifs :</h4>
+    {currentScene.objectives.map((obj, i) => (
+      <Objective key={i} completed={objectiveStates[i]}>
+        {objectiveStates[i] ? '✅' : '⬜'} {obj}
+      </Objective>
+    ))}
+  </ObjectivesSidebar>
+  
+  {/* Vocabulary helper (collapsible) */}
+  <VocabularyHelper>
+    <summary>💡 Vocabulaire utile</summary>
+    <WordList>
+      {getSceneVocabulary(currentScene).map(word => (
+        <Word key={word.ar}>
+          <span className="ar">{word.ar}</span> = 
+          <span className="fr">{word.fr}</span>
+        </Word>
+      ))}
+    </WordList>
+  </VocabularyHelper>
+  
+  {/* Chat interface */}
+  <ChatInterface>
+    <MessageHistory>
+      {messages.map(msg => (
+        <MessageBubble 
+          character={msg.character}
+          text={msg.text}
+          avatar={msg.character?.avatar}
+        />
+      ))}
+    </MessageHistory>
+    <ChatInput 
+      placeholder="Réponds en arabe..."
+      dir="rtl"
+    />
+  </ChatInterface>
+</StoryMode>
+```
+
+### Story Completion Screen
+
+```tsx
+<StoryComplete>
+  <Confetti />
+  
+  <Title>🎉 Histoire terminée !</Title>
+  <StoryTitle>{story.titleEn}</StoryTitle>
+  
+  <Stats>
+    <Stat>
+      <Icon>⏱️</Icon>
+      <Label>Durée</Label>
+      <Value>{duration} minutes</Value>
+    </Stat>
+    <Stat>
+      <Icon>✅</Icon>
+      <Label>Objectifs</Label>
+      <Value>{completedObjectives}/{totalObjectives}</Value>
+    </Stat>
+    <Stat>
+      <Icon>💬</Icon>
+      <Label>Personnages</Label>
+      <Value>{metCharacters}/{totalCharacters}</Value>
+    </Stat>
+    <Stat>
+      <Icon>📚</Icon>
+      <Label>Nouveaux mots</Label>
+      <Value>{newWordsLearned}</Value>
+    </Stat>
+    <Stat>
+      <Icon>🎯</Icon>
+      <Label>Score</Label>
+      <Value>{score}/100</Value>
+    </Stat>
+  </Stats>
+  
+  <Achievements>
+    <h3>🏆 Badges débloqués</h3>
+    {unlockedAchievements.map(achievement => (
+      <Achievement key={achievement.id}>
+        <Icon>{achievement.icon}</Icon>
+        <Name>{achievement.name}</Name>
+        <Description>{achievement.description}</Description>
+      </Achievement>
+    ))}
+  </Achievements>
+  
+  <VocabularyReview>
+    <h3>📖 Mots appris pendant l'histoire</h3>
+    <FlashcardDeck words={newWords} />
+    <Button>Réviser ces mots →</Button>
+  </VocabularyReview>
+  
+  <Actions>
+    <Button variant="secondary">Rejouer l'histoire</Button>
+    <Button variant="primary">Nouvelle histoire →</Button>
+    <Button variant="ghost">Retour au tableau de bord</Button>
+  </Actions>
+</StoryComplete>
+```
+
+### Audio Assets Library
+
+```
+/public/audio/
+├── ambient/
+│   ├── traffic-ambient.mp3          (Urban traffic)
+│   ├── souk-crowd-loop.mp3          (Market crowd)
+│   ├── restaurant-ambient.mp3       (Restaurant)
+│   ├── airport-terminal.mp3         (Airport)
+│   ├── street-calm.mp3              (Calm street)
+│   ├── home-quiet.mp3               (Quiet home)
+│   └── evening-souk.mp3             (Evening market)
+│
+├── character/
+│   ├── radio-arabic-low.mp3         (Taxi radio)
+│   ├── spices-pouring.mp3           (Spices)
+│   ├── walkie-talkie-static.mp3     (Police radio)
+│   └── tea-pouring.mp3              (Tea service)
+│
+└── events/
+    ├── car-door-close.mp3
+    ├── car-indicator.mp3
+    ├── meter-beep.mp3
+    ├── jar-open.mp3
+    ├── coins-jingle.mp3
+    ├── merchant-call-distant.mp3
+    ├── camera-click.mp3
+    ├── map-unfold.mp3
+    └── whistle-police.mp3
+```
+
+**Audio Sources (Royalty-Free):**
+- Freesound.org
+- Zapsplat.com
+- BBC Sound Effects (non-commercial OK)
+
+### Character Avatar Assets
+
+```
+/public/avatars/
+├── taxi-driver.svg          (Cap + yellow theme)
+├── spice-vendor.svg         (Turban + orange/brown)
+├── tourist.svg              (Sun hat + backpack)
+├── police-officer.svg       (Police cap + navy)
+├── carpet-seller.svg        (Colorful scarf + red)
+├── waiter.svg               (Bow tie + black/white)
+├── doctor.svg               (White coat)
+└── shopkeeper.svg           (Traditional djellaba)
+```
+
+Each avatar:
+- SVG format (scalable, lightweight)
+- 200x300px viewport
+- Lottie animations for complex gestures
+- CSS variables for color theming
+
+---

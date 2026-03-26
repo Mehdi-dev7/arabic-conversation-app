@@ -1,0 +1,30 @@
+---
+description: 🧪 TESTING REQUIREMENTS
+globs: **/*.{ts,tsx,json,yml,yaml}
+alwaysApply: false
+---
+## 🧪 TESTING REQUIREMENTS
+
+
+### Before Deploy
+- [ ] Test Arabic input (MSA + Darija)
+- [ ] Test RTL layout (no overlap issues)
+- [ ] Test on mobile (responsive)
+- [ ] Test PWA install (Chrome, Safari)
+- [ ] Test rate limiting (hit free plan limit)
+- [ ] Test payment flow (Stripe test mode)
+- [ ] Test error states (API failures)
+- [ ] Test offline mode (premium users)
+- [ ] Lighthouse score > 90
+- [ ] No console errors
+
+### Beta Testing Checklist
+- [ ] 5 native Arabic speakers test conversations
+- [ ] 5 French/English learners test onboarding
+- [ ] Collect feedback on correction frequency
+- [ ] Verify avatar is culturally appropriate
+- [ ] Test on iOS Safari (PWA quirks)
+- [ ] Test on Android Chrome
+- [ ] Verify Stripe webhooks in production
+
+---

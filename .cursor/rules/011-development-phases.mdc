@@ -1,0 +1,185 @@
+---
+description: 🚀 DEVELOPMENT PHASES
+alwaysApply: false
+---
+## 🚀 DEVELOPMENT PHASES
+
+
+### PHASE 1: MVP Core (historique — repo déjà initialisé)
+
+**État actuel :** Next.js à la racine + app **`mobile/`** (Expo, expo-router). Ne pas relancer `create-next-app` à la racine.
+
+#### Session 1 (référence): Setup + Basic Chat
+```bash
+# Racine : API Next.js
+npm install
+npm run dev
+
+# Client mobile (autre terminal)
+npm run mobile
+# ou: cd mobile && npx expo start
+
+# Variable pour appareil physique / prod (fichier mobile/.env)
+# EXPO_PUBLIC_API_URL=https://votre-backend ou http://IP_LAN:3000
+
+# 2. Install dependencies
+npm install @anthropic-ai/sdk framer-motion howler zustand
+
+# 3. Setup folder structure
+/app
+  /api
+    /chat/route.ts           # Claude API integration
+    /auth/[...supabase]/route.ts  # Supabase auth
+  /(authenticated)
+    /dashboard/page.tsx      # Main dashboard
+    /chat/[scenarioId]/page.tsx  # Conversation interface
+  /(public)
+    /page.tsx                # Landing page
+    /pricing/page.tsx        # Pricing table
+
+/components
+  /ui                        # Shadcn components
+  /chat
+    /ChatInterface.tsx       # Main chat UI
+    /MessageBubble.tsx       # Individual messages
+    /CorrectionPopup.tsx     # Inline corrections
+  /avatar
+    /GestureAvatar.tsx       # Animated avatar
+    /AvatarGestures.ts       # Gesture animations
+  /scenarios
+    /ScenarioCard.tsx        # Scenario selection
+    /BackgroundScene.tsx     # Dynamic backgrounds
+
+/lib
+  /supabase.ts              # Supabase client
+  /anthropic.ts             # Claude API wrapper
+  /prompts.ts               # System prompts
+  /scenarios.ts             # Scenario configurations
+  /constants.ts             # App constants
+
+# 4. Create basic chat interface (1h)
+- Text input/output only
+- Message bubbles (user vs AI)
+- Scroll to bottom on new message
+
+# 5. Integrate Claude API (1h)
+- API route with streaming
+- System prompt for Arabic tutor persona
+- Handle Arabic RTL text properly
+```
+
+#### Session 2 (3 hours): AI Conversational Logic
+```typescript
+// 6. System prompt configuration (1h)
+const buildSystemPrompt = (level: Level, language: Language) => `
+You are a friendly Arabic language tutor helping someone practice conversation.
+
+LANGUAGE: ${language === 'msa' ? 'Modern Standard Arabic (الفصحى)' : 'Moroccan Darija (الدارجة المغربية)'}
+STUDENT LEVEL: ${level}
+
+YOUR ROLE:
+- Engage in natural conversation about the scenario
+- ${levelConfigs[level].systemPrompt}
+- When student makes an error, gently correct them in your next response
+- Use this format for corrections:
+  "تقريباً صحيح! 👋 لكن نقول: [correct version]
+   [Brief explanation in Arabic]
+   [Continue conversation naturally]"
+
+IMPORTANT RULES:
+- Always respond in Arabic (${language})
+- Be encouraging and patient
+- Keep responses conversational, not lecture-style
+- If student uses wrong language (MSA when Darija expected), gently remind them
+- Track new vocabulary they use successfully
+
+Current scenario: {scenario.name} - {scenario.description}
+`;
+
+// 7. Implement language selection (30 min)
+// Toggle between MSA / Darija
+// Store preference in user profile
+
+// 8. Create first scenario: "التعارف" (Introduction) (1h)
+const introductionScenario = {
+  systemContext: `You're meeting someone new at a cafe in Morocco. 
+                  Start by greeting them warmly and asking their name.
+                  Topics: name, age, city, work, hobbies.`,
+  starterMessage: {
+    msa: "السلام عليكم! أنا سعيد بلقائك. ما اسمك؟",
+    darija: "السلام! واش كتعرف تهضر بالدارجة؟ شنو سميتك؟"
+  },
+};
+
+// 9. Real-time correction detection (30 min)
+// Parse AI response for correction patterns
+// Highlight corrected words in UI
+```
+
+#### Session 3 (2 hours): Avatar + Polish
+```typescript
+// 10. Gestural Avatar Implementation (1h)
+// SVG-based abstract humanoid
+// Framer Motion animations:
+//   - Idle: gentle sway
+//   - Speaking: subtle pulse/glow
+//   - Listening: stillness
+//   - Correcting: hand gesture pointing
+
+// 11. Background for "Cafe" scenario (30 min)
+// CSS gradient + SVG illustrations (tables, zellige pattern)
+// Ambient sound loop (coffee shop ambiance)
+
+// 12. Make it a PWA (30 min)
+// Install next-pwa
+// Create manifest.json
+// Add service worker
+// Test "Add to Home Screen"
+```
+
+**END OF DAY DELIVERABLE:**
+✅ Working Next.js app deployed on Vercel
+✅ Text-based chat with Claude API (Arabic conversation)
+✅ 1 scenario working ("Introduction")
+✅ Language toggle (MSA/Darija)
+✅ Real-time corrections visible
+✅ Animated avatar (basic gestures)
+✅ PWA installable
+✅ Responsive mobile/desktop
+
+**NOT INCLUDED TODAY (Phase 2):**
+- Voice mode (STT/TTS)
+- Multiple scenarios
+- User authentication
+- Payment integration
+- Progress tracking
+- Vocabulary flashcards
+
+---
+
+### PHASE 2: Full Features (Week 2-3)
+- Supabase auth + database
+- All beginner/intermediate scenarios
+- Progress tracking dashboard
+- Spaced repetition flashcards
+- Stripe payment integration
+- Email verification
+- Rate limiting enforcement
+
+### PHASE 3: Premium Features (Week 4)
+- Voice mode (Whisper STT + Google TTS)
+- Offline mode (PWA caching)
+- Advanced scenarios
+- Vocabulary export (PDF/Anki)
+- Pronunciation scoring
+- Gamification (streaks, badges)
+
+### PHASE 4: Launch & Iteration (Week 5-6)
+- Landing page + marketing site
+- Beta testing (20 users)
+- Analytics (Mixpanel/Posthog)
+- Bug fixes
+- Performance optimization
+- SEO optimization
+
+---
